@@ -1,5 +1,5 @@
 "use client";
-
+/// Nút "Viết review", ẩn khi công tắc nội dung tắt. Hỏi ở trình duyệt để trang vẫn ISR được.
 import Link from "next/link";
 import { useCanPost } from "./useCanPost";
 
