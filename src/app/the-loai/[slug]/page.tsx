@@ -5,7 +5,7 @@ import { listFilms } from "@/lib/data";
 import { GENRES, genreBySlug } from "@/lib/genres";
 
 export const revalidate = 3600;
-export const dynamicParams = false;
+// Không đặt dynamicParams = false: sau revalidatePath của đồng bộ TMDB, trang sẽ 404 thay vì được dựng lại.
 export const generateStaticParams = () => GENRES.map((g) => ({ slug: g.slug }));
 
 type Props = { params: { slug: string } };

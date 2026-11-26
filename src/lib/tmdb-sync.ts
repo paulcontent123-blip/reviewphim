@@ -51,10 +51,14 @@ async function syncOne(db: SupabaseClient, item: TmdbListItem): Promise<"inserte
     const base = filmSlug(film, () => false);
     const dup = await db.from("films").select("id").eq("slug", base).maybeSingle();
     if (dup.error) throw new Error(dup.error.message);
-    const slug = filmSlug(film, () => Boolean(dup.data));
-    const { data, error } = await db.from("films").insert({ ...film, slug }).select("id").single();
-    if (error) throw new Error(error.message);
-    filmId = data.id;
+    const insert = (slug: string) => db.from("films").insert({ ...film, slug }).select("id").single();
+    let added = await insert(filmSlug(film, () => Boolean(dup.data)));
+    // Phim chạy song song có thể vừa lấy mất slug sau lúc kiểm tra; thử lại với slug kèm id TMDB.
+    if (added.error?.code === "23505" && added.error.message.includes("films_slug_key")) {
+      added = await insert(filmSlug(film, () => true));
+    }
+    if (added.error) throw new Error(added.error.message);
+    filmId = added.data.id;
   }
 
   const cast = toCast(detail);

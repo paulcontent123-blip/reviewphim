@@ -56,6 +56,14 @@ describe("catalog", () => {
     expect(await anon("select slug from films where search_text ilike '%bo gia: dac biet%'")).toHaveLength(1);
   });
 
+  // syncTmdb dựa vào tên ràng buộc này để biết phải thử slug khác.
+  it("trùng slug báo đúng ràng buộc films_slug_key", async () => {
+    await expect(db.query("insert into films (slug, title) values ('bo-gia-2021', 'x')")).rejects.toMatchObject({
+      code: "23505",
+      message: expect.stringContaining("films_slug_key"),
+    });
+  });
+
   it("chỉ nhận link https và nền tảng trong spec", async () => {
     const ins = "insert into watch_options (film_id, platform, url) values ($1, $2, $3)";
     await expect(db.query(ins, [film, "vieon", "javascript:alert(1)"])).rejects.toThrow(/url_https/);
