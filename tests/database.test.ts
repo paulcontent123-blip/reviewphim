@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { PGlite } from "@electric-sql/pglite";
-import { beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 const A = "a1111111-1111-4111-8111-111111111111";
 const B = "b2222222-2222-4222-8222-222222222222";
@@ -34,7 +34,7 @@ const user = (uid: string, sql: string, p?: unknown[]) => as("authenticated", ui
 beforeAll(async () => {
   db = new PGlite();
   await db.exec(SUPABASE_STUB);
-  for (const f of ["0001_techspec", "0002_phase1"]) {
+  for (const f of ["0001_techspec", "0002_phase1", "0003_review_moderation"]) {
     await db.exec(readFileSync(`supabase/migrations/${f}.sql`, "utf8"));
   }
   await db.query("insert into auth.users values ($1), ($2)", [A, B]);
@@ -129,6 +129,86 @@ describe("reviews", () => {
     expect(await user(A, "select id from reviews where author_id = $1", [A])).toHaveLength(1);
     expect(Number((await score()).site_score)).toBe(9);
     await db.query("update reviews set status = 'published' where author_id = $1", [A]);
+  });
+});
+
+describe("kiểm duyệt và tag", () => {
+  const C = "c3333333-3333-4333-8333-333333333333";
+  const post = "insert into reviews (film_id, author_id, score, title, content) values ($1, $2, 7, 'Xem được', $3)";
+  const mine = async () =>
+    (await db.query<{ status: string }>("select status from reviews where author_id = $1", [C])).rows;
+  const setTags = (tags: unknown) => user(C, "update reviews set tags = $1 where author_id = $2 returning id", [tags, C]);
+
+  beforeAll(async () => {
+    await db.query("insert into auth.users values ($1)", [C]);
+    await user(C, post, [film, C, LONG]);
+  });
+  // Xóa dữ liệu của C để các nhóm test khác không bị ảnh hưởng.
+  afterAll(async () => {
+    await db.query("delete from auth.users where id = $1", [C]);
+  });
+
+  it("bài bị ẩn không xóa được, nên không đăng lại thành bài mới", async () => {
+    await db.query("update reviews set status = 'hidden' where author_id = $1", [C]);
+    expect(await user(C, "delete from reviews where author_id = $1 returning id", [C])).toEqual([]);
+    await expect(user(C, post, [film, C, LONG])).rejects.toThrow(/reviews_one_per_user/);
+    expect(await mine()).toEqual([{ status: "hidden" }]);
+  });
+
+  it("tác giả vẫn xóa được bài đang hiển thị của mình", async () => {
+    await db.query("update reviews set status = 'published' where author_id = $1", [C]);
+    expect(await user(C, "delete from reviews where author_id = $1 returning id", [C])).toHaveLength(1);
+    expect(await mine()).toEqual([]);
+    await user(C, post, [film, C, LONG]);
+  });
+
+  it.each([
+    ["không có tag", null],
+    ["mảng rỗng", []],
+    ["5 tag, mỗi tag 30 ký tự có dấu", Array(5).fill("đ".repeat(30))],
+  ])("nhận tag hợp lệ: %s", async (_name, tags) => {
+    expect(await setTags(tags)).toHaveLength(1);
+  });
+
+  it.each([
+    ["6 tag", Array(6).fill("a")],
+    ["tag 31 ký tự", ["a".repeat(31)]],
+    ["tag rỗng", [""]],
+    ["tag chỉ có khoảng trắng", ["   "]],
+    ["phần tử null", ["a", null]],
+    ["tag chỉ có tab", ["\t"]],
+    ["tag chỉ có xuống dòng", ["\r\n"]],
+  ])("từ chối tag sai: %s", async (_name, tags) => {
+    await expect(setTags(tags)).rejects.toThrow(/reviews_tags_valid/);
+  });
+
+  const setText = (column: "title" | "content", value: string) =>
+    user(C, `update reviews set ${column} = $1 where author_id = $2 returning id`, [value, C]);
+
+  it.each([
+    ["title", "toàn dấu cách", " ".repeat(10)],
+    ["title", "toàn tab và xuống dòng", "\t\n\r\f\v\t"],
+    ["title", "thiếu ký tự sau khi cắt", "  abcd\n\n"],
+    ["content", "toàn khoảng trắng", " \t\r\n".repeat(20)],
+    ["content", "thiếu ký tự sau khi cắt", `\n\n  ${"a".repeat(49)}  \t`],
+  ] as const)("từ chối %s %s", async (column, _name, value) => {
+    await expect(setText(column, value)).rejects.toThrow(new RegExp(`reviews_${column}_trimmed_len`));
+  });
+
+  it.each([
+    ["title", "  abcde\n"],
+    ["content", `\n${"a".repeat(50)}\t`],
+  ] as const)("nhận %s đủ ký tự dù có khoảng trắng ở hai đầu", async (column, value) => {
+    expect(await setText(column, value)).toHaveLength(1);
+  });
+
+  it("từ chối mảng tag nhiều chiều và tag sai ngay khi đăng", async () => {
+    await expect(user(C, "update reviews set tags = array[array['a'], array['b']] where author_id = $1", [C])).rejects.toThrow(
+      /reviews_tags_valid/,
+    );
+    await db.query("delete from reviews where author_id = $1", [C]);
+    const insert = "insert into reviews (film_id, author_id, score, tags) values ($1, $2, 7, $3)";
+    await expect(user(C, insert, [film, C, Array(6).fill("a")])).rejects.toThrow(/reviews_tags_valid/);
   });
 });
 
