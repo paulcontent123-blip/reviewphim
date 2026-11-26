@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { submitReview } from "@/app/actions";
 import { HIDDEN_SAVED_MESSAGE } from "@/lib/content";
+import { NAME_MAX, NAME_MIN } from "@/lib/display-name";
 import { Markdown } from "./Markdown";
 
 export interface ReviewDraft {
@@ -23,9 +24,9 @@ function Submit({ hidden }: { hidden?: boolean }) {
   );
 }
 
-type Props = { filmId: string; filmSlug: string; draft: ReviewDraft | null; hidden?: boolean };
+type Props = { filmId: string; filmSlug: string; draft: ReviewDraft | null; hidden?: boolean; askName?: boolean };
 
-export function ReviewForm({ filmId, filmSlug, draft, hidden }: Props) {
+export function ReviewForm({ filmId, filmSlug, draft, hidden, askName }: Props) {
   const [state, action] = useFormState(submitReview, {});
   const [content, setContent] = useState(draft?.content ?? "");
   const [preview, setPreview] = useState(false);
@@ -34,6 +35,26 @@ export function ReviewForm({ filmId, filmSlug, draft, hidden }: Props) {
     <form action={action} className="space-y-4">
       <input type="hidden" name="film_id" value={filmId} />
       <input type="hidden" name="film_slug" value={filmSlug} />
+      {askName && (
+        <div>
+          <label htmlFor="display_name" className="block text-sm font-semibold">
+            Tên hiển thị
+          </label>
+          <input
+            id="display_name"
+            name="display_name"
+            required
+            minLength={NAME_MIN}
+            maxLength={NAME_MAX}
+            autoComplete="nickname"
+            aria-describedby="display_name_hint"
+            className="field mt-1"
+          />
+          <p id="display_name_hint" className="mt-1 text-xs text-fg3">
+            Hiện cùng bài review của bạn. Chỉ đặt được một lần.
+          </p>
+        </div>
+      )}
       <label className="block text-sm font-semibold">
         Điểm (1–10)
         <select name="score" required defaultValue={draft?.score ? Math.round(draft.score) : ""} className="field mt-1">

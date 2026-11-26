@@ -14,6 +14,7 @@ export default async function WriteReviewPage({ params }: { params: { slug: stri
 
   let draft: ReviewDraft | null = null;
   let hidden = false;
+  let askName = false;
   if (!usingSample()) {
     // Kiểm tra trước khi bắt đăng nhập: công tắc tắt thì đăng nhập cũng không viết được.
     if (!(await canPostContent(sessionClient()))) {
@@ -34,6 +35,8 @@ export default async function WriteReviewPage({ params }: { params: { slug: stri
       .maybeSingle();
     draft = data;
     hidden = data?.status === "hidden";
+    const { data: profile } = await sessionClient().from("profiles").select("display_name").eq("id", user.id).maybeSingle();
+    askName = profile?.display_name === null;
   }
 
   return (
@@ -46,7 +49,7 @@ export default async function WriteReviewPage({ params }: { params: { slug: stri
           {HIDDEN_NOTICE}
         </p>
       )}
-      <ReviewForm filmId={film.id} filmSlug={film.slug} draft={draft} hidden={hidden} />
+      <ReviewForm filmId={film.id} filmSlug={film.slug} draft={draft} hidden={hidden} askName={askName} />
     </div>
   );
 }

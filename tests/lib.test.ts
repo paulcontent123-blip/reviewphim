@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { canPostContent, isPostingOff } from "@/lib/content";
+import { canPostContent, CONTENT_OFF_MESSAGE, isPostingOff } from "@/lib/content";
+import { nameFormatError, nameSaveError, normalizeName } from "@/lib/display-name";
 import { movieJsonLd, serializeJsonLd } from "@/lib/jsonld";
 import { FILMS } from "@/lib/data/sample";
 import { excerpt, safeNext, slugify, unaccent, youtubeId } from "@/lib/text";
@@ -96,5 +97,27 @@ describe("công tắc nội dung", () => {
     expect(await canPostContent(db(false))).toBe(false);
     expect(await canPostContent(db(true))).toBe(true);
     expect(asked).toEqual(["can_post_content", "can_post_content"]);
+  });
+});
+
+describe("tên hiển thị", () => {
+  it("gom khoảng trắng thừa và chuẩn hóa dấu", () => {
+    expect(normalizeName("  Minh \t  Anh \n")).toBe("Minh Anh");
+    expect(normalizeName("Mi\u0300nh")).toBe("M\u00ecnh");
+  });
+  it.each(["Minh Anh", "Đỗ Thị Hà", "An", "a".repeat(30)])("nhận: %s", (v) => expect(nameFormatError(v)).toBeNull());
+  it.each(["", "A", "a".repeat(31)])("sai độ dài: '%s'", (v) => expect(nameFormatError(v)).toMatch(/2 đến 30/));
+  it.each(["minh_anh", "Minh <b>", "\u0410nh", "Minh\u0301\u0301"])("sai ký tự: %s", (v) =>
+    expect(nameFormatError(v)).toMatch(/chữ cái, số/),
+  );
+  it.each([
+    [{ code: "23505", message: 'duplicate key value violates unique constraint "profiles_display_name_key"' }, /đã có người dùng/],
+    [{ code: "23514", message: "display_name_reserved" }, /không được dùng/],
+    [{ code: "23514", message: "display_name_locked" }, /không đổi được/],
+    [{ code: "23514", message: 'violates check constraint "profiles_display_name_format"' }, /chữ cái, số/],
+    [{ code: "XX000", message: "lỗi lạ" }, /vui lòng thử lại/],
+  ])("đổi lỗi database thành câu dễ hiểu: %o", (error, text) => expect(nameSaveError(error)).toMatch(text));
+  it("công tắc tắt dùng đúng câu thông báo chung", () => {
+    expect(nameSaveError({ code: "23514", message: "display_name_off" })).toBe(CONTENT_OFF_MESSAGE);
   });
 });

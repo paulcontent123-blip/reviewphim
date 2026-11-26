@@ -21,7 +21,10 @@ test("viết review", async ({ page }) => {
   const { filmSlug, userId } = testData();
   const title = "Bài review của E2E";
   const content = "Nội dung do test tự động viết, đủ dài hơn năm mươi ký tự để được đăng.";
+  // Tên không được trùng giữa các lần chạy nên lấy một phần id tài khoản.
+  const author = `E2E ${userId.slice(0, 8)}`;
   await signIn(page, `/phim/${filmSlug}/viet-review`);
+  await page.getByLabel("Tên hiển thị").fill(author);
   await page.getByLabel("Điểm (1–10)").selectOption("8");
   await page.getByLabel("Tiêu đề").fill(title);
   await page.getByLabel(/^Nội dung/).fill(content);
@@ -30,6 +33,7 @@ test("viết review", async ({ page }) => {
   await expect(page).toHaveURL(new RegExp(`/review/${filmSlug}-[0-9a-f]{8}$`));
   await expect(page.getByRole("heading", { level: 1, name: title })).toBeVisible();
   await expect(page.getByRole("article").getByText(content)).toBeVisible();
+  await expect(page.getByRole("article").getByText(author)).toBeVisible();
   expect(await rows(`reviews?select=title,score,status&author_id=eq.${userId}`)).toEqual([
     { title, score: 8, status: "published" },
   ]);

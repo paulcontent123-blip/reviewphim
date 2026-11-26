@@ -30,11 +30,13 @@ async function as<T = Record<string, unknown>>(role: string, uid: string | null,
 }
 const anon = (sql: string, p?: unknown[]) => as("anon", null, sql, p);
 const user = (uid: string, sql: string, p?: unknown[]) => as("authenticated", uid, sql, p);
+/** Đặt tên bằng quyền database, cho các test cần người đăng bài. */
+const name = (uid: string, value: string) => db.query("update profiles set display_name = $1 where id = $2", [value, uid]);
 
 beforeAll(async () => {
   db = new PGlite();
   await db.exec(SUPABASE_STUB);
-  for (const f of ["0001_techspec", "0002_phase1", "0003_review_moderation", "0004_content_switch"]) {
+  for (const f of ["0001_techspec", "0002_phase1", "0003_review_moderation", "0004_content_switch", "0005_display_name"]) {
     await db.exec(readFileSync(`supabase/migrations/${f}.sql`, "utf8"));
   }
   await db.query("insert into auth.users values ($1), ($2)", [A, B]);
@@ -78,10 +80,10 @@ describe("profiles", () => {
     await expect(user(A, "select affiliate_code from profiles")).rejects.toThrow(/permission denied/);
   });
 
-  it("không tự nâng quyền, không sửa hồ sơ người khác", async () => {
+  it("không tự nâng quyền, không đổi username, không sửa hồ sơ người khác", async () => {
     await expect(user(A, "update profiles set role = 'admin' where id = $1", [A])).rejects.toThrow(/permission denied/);
-    expect(await user(A, "update profiles set username = 'hacked' where id = $1 returning id", [B])).toEqual([]);
-    expect(await user(A, "update profiles set username = 'minh_a' where id = $1 returning id", [A])).toHaveLength(1);
+    await expect(user(A, "update profiles set username = 'admin' where id = $1", [A])).rejects.toThrow(/permission denied/);
+    expect(await user(A, "update profiles set display_name = 'Bị Đổi Trộm' where id = $1 returning id", [B])).toEqual([]);
   });
 });
 
@@ -89,6 +91,11 @@ describe("reviews", () => {
   const rate = "insert into reviews (film_id, author_id, score) values ($1, $2, $3)";
   const score = async () =>
     (await db.query<{ site_score: string; vote_count: number }>("select site_score, vote_count from films where id = $1", [film])).rows[0];
+
+  beforeAll(async () => {
+    await name(A, "Minh A");
+    await name(B, "Bình B");
+  });
 
   it("khách không chấm điểm được, không mạo danh được", async () => {
     await expect(anon(rate, [film, A, 8])).rejects.toThrow(/permission denied/);
@@ -109,7 +116,7 @@ describe("reviews", () => {
     await user(A, "update reviews set title = 'Phim rất hay', content = $1 where author_id = $2", [LONG, A]);
     const feed = await anon("select slug, author_name, film_slug from review_feed");
     expect(feed).toHaveLength(1);
-    expect(feed[0]).toMatchObject({ author_name: "minh_a", film_slug: "bo-gia-2021" });
+    expect(feed[0]).toMatchObject({ author_name: "Minh A", film_slug: "bo-gia-2021" });
     expect(feed[0].slug).toMatch(/^bo-gia-2021-[0-9a-f]{8}$/);
   });
 
@@ -149,6 +156,7 @@ describe("kiểm duyệt và tag", () => {
 
   beforeAll(async () => {
     await db.query("insert into auth.users values ($1)", [C]);
+    await name(C, "Châu C");
     await user(C, post, [film, C, LONG]);
   });
   // Xóa dữ liệu của C để các nhóm test khác không bị ảnh hưởng.
@@ -249,6 +257,9 @@ describe("công tắc nội dung người dùng", () => {
   beforeAll(async () => {
     await db.query("insert into auth.users values ($1), ($2), ($3)", [VIEWER, NEWCOMER, ADMIN]);
     await db.query("update profiles set role = 'admin' where id = $1", [ADMIN]);
+    await name(VIEWER, "Người Xem");
+    await name(NEWCOMER, "Người Mới");
+    await name(ADMIN, "Biên Tập");
     target = (await db.query<{ id: string }>("select id from review_feed limit 1")).rows[0].id;
     await user(VIEWER, post, [film, VIEWER, LONG]);
     await user(VIEWER, like, [VIEWER, target]);
@@ -321,6 +332,112 @@ describe("công tắc nội dung người dùng", () => {
     } finally {
       await db.query("insert into site_settings default values");
     }
+  });
+});
+
+describe("tên hiển thị", () => {
+  const D = "d7777777-7777-4777-8777-777777777777";
+  const E = "e8888888-8888-4888-8888-888888888888";
+  const ADMIN = "f9999999-9999-4999-8999-999999999999";
+  const set = (uid: string, value: string | null) =>
+    user(uid, "update profiles set display_name = $1 where id = $2 returning display_name", [value, uid]);
+  const clear = () => db.query("update profiles set display_name = null where id in ($1, $2, $3)", [D, E, ADMIN]);
+  const post = "insert into reviews (film_id, author_id, score, title, content) values ($1, $2, 7, 'Bài của D', $3)";
+  const author = async () =>
+    (await anon("select author_name from review_feed where title like 'Bài của D%'")).map((r) => r.author_name);
+
+  beforeAll(async () => {
+    await db.query("insert into auth.users values ($1), ($2), ($3)", [D, E, ADMIN]);
+    await db.query("update profiles set role = 'admin' where id = $1", [ADMIN]);
+  });
+  afterAll(async () => {
+    await db.query("delete from auth.users where id in ($1, $2, $3)", [D, E, ADMIN]);
+  });
+
+  it.each(["Minh Anh", "Đỗ Thị Hà", "Quân Trí", "An", "Nguyễn Trần Ngọc Thanh Hà 99"])("nhận tên: %s", async (value) => {
+    await clear();
+    expect(await set(D, value)).toEqual([{ display_name: value }]);
+  });
+
+  it.each([
+    ["1 ký tự", "A"],
+    ["31 ký tự", "a".repeat(31)],
+    ["khoảng trắng đôi", "Minh  Anh"],
+    ["khoảng trắng ở đầu", " Minh"],
+    ["khoảng trắng ở cuối", "Minh "],
+    ["xuống dòng", "Minh\nAnh"],
+    ["gạch dưới", "minh_anh"],
+    ["ký tự đặc biệt", "Minh <b>"],
+    ["chữ Cyrillic giả Latin", "\u0410dmin Phim"],
+    ["dấu rời (chưa chuẩn hóa)", "Mi\u0300nh"],
+    ["chữ chồng dấu", "Minh\u0301\u0301\u0301"],
+  ])("từ chối tên sai: %s", async (_name, value) => {
+    await clear();
+    await expect(set(D, value)).rejects.toThrow(/profiles_display_name_format/);
+  });
+
+  it("không trùng, không phân biệt hoa thường kể cả chữ có dấu", async () => {
+    await clear();
+    await set(D, "Đỗ Minh Ánh");
+    await expect(set(E, "đỗ minh ánh")).rejects.toThrow(/profiles_display_name_key/);
+    await expect(set(E, "ĐỖ MINH ÁNH")).rejects.toThrow(/profiles_display_name_key/);
+    expect(await set(E, "Đỗ Minh Anh")).toHaveLength(1);
+  });
+
+  it.each(["Admin", "admin Phim", "ADMINISTRATOR", "ReviewPhim", "Review Phim VN", "Moderator", "Quản trị", "QUẢN TRỊ VIÊN", "Ban Quản Trị"])(
+    "người thường không đặt được tên mạo danh: %s",
+    async (value) => {
+      await clear();
+      await expect(set(D, value)).rejects.toThrow(/display_name_reserved/);
+    },
+  );
+
+  it("admin đặt được tên dành riêng", async () => {
+    await clear();
+    expect(await set(ADMIN, "ReviewPhim")).toHaveLength(1);
+  });
+
+  it("đặt một lần: không đổi, không xóa; service_role đổi được", async () => {
+    await clear();
+    await set(D, "Tên Đầu");
+    await expect(set(D, "Tên Khác")).rejects.toThrow(/display_name_locked/);
+    await expect(set(D, null)).rejects.toThrow(/display_name_locked/);
+    expect(await set(D, "Tên Đầu")).toHaveLength(1);
+    expect(await as("service_role", null, "update profiles set display_name = 'Tên Mới' where id = $1 returning id", [D])).toHaveLength(1);
+  });
+
+  it("công tắc tắt thì người thường không đặt được tên", async () => {
+    await clear();
+    await db.query("update site_settings set ugc_enabled = false");
+    try {
+      await expect(set(D, "Lúc Đang Tắt")).rejects.toThrow(/display_name_off/);
+      expect(await set(ADMIN, "Quản Lý Nội Dung")).toHaveLength(1);
+    } finally {
+      await db.query("update site_settings set ugc_enabled = true");
+    }
+  });
+
+  it("chưa có tên: chấm điểm được, đăng bài có nội dung bị từ chối", async () => {
+    await clear();
+    await expect(user(D, post, [film, D, LONG])).rejects.toThrow(/review_needs_display_name/);
+    await user(D, "insert into reviews (film_id, author_id, score) values ($1, $2, 6)", [film, D]);
+    const write = "update reviews set title = 'Bài của D', content = $1 where author_id = $2";
+    await expect(user(D, write, [LONG, D])).rejects.toThrow(/review_needs_display_name/);
+    await set(D, "Dung D");
+    await user(D, write, [LONG, D]);
+    expect(await author()).toEqual(["Dung D"]);
+  });
+
+  it("bài cũ của người chưa có tên: hiện username, vẫn chấm lại được, sửa bài thì phải đặt tên", async () => {
+    await clear();
+    const [{ username }] = (await anon("select username from profiles where id = $1", [D])) as { username: string }[];
+    expect(await author()).toEqual([username]);
+    expect(await user(D, "update reviews set score = 9 where author_id = $1 returning id", [D])).toHaveLength(1);
+    await expect(user(D, "update reviews set title = 'Bài của D sửa' where author_id = $1", [D])).rejects.toThrow(
+      /review_needs_display_name/,
+    );
+    // Quản trị vẫn ẩn được bài của người chưa có tên.
+    expect(await as("service_role", null, "update reviews set status = 'hidden' where author_id = $1 returning id", [D])).toHaveLength(1);
   });
 });
 

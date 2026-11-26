@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { canPostContent, CONTENT_OFF_MESSAGE } from "@/lib/content";
+import { nameFormatError, nameSaveError, normalizeName } from "@/lib/display-name";
 import { hasSupabase } from "@/lib/env";
 import { sessionClient } from "@/lib/supabase/server";
 import { isUuid } from "@/lib/text";
@@ -18,11 +19,34 @@ const NOT_READY: ActionState = { error: "Chưa nối Supabase nên chưa lưu đ
 const SIGN_IN: ActionState = { error: "Bạn cần đăng nhập." };
 const FAILED: ActionState = { error: "Không lưu được, vui lòng thử lại." };
 const CONTENT_OFF: ActionState = { error: CONTENT_OFF_MESSAGE };
+const NEEDS_NAME: ActionState = { error: "Bạn cần đặt tên hiển thị trước. Hãy tải lại trang." };
 
 const validScore = (n: number) => Number.isInteger(n) && n >= 1 && n <= 10;
 const validSlug = (s: string) => /^[a-z0-9-]+$/.test(s);
 
 type ReviewValues = { score: number; title?: string; content?: string; spoiler?: boolean; tags?: string[] };
+
+const saveError = (message: string) => (message.includes("review_needs_display_name") ? NEEDS_NAME : FAILED);
+
+/** Đặt tên hiển thị lần đầu. Trùng, tên cấm, đổi tên đều do database từ chối. */
+async function saveDisplayName(raw: string): Promise<ActionState> {
+  const name = normalizeName(raw);
+  const invalid = nameFormatError(name);
+  if (invalid) return { error: invalid };
+  const db = sessionClient();
+  const { data } = await db.auth.getUser();
+  if (!data.user) return SIGN_IN;
+  const { error } = await db.from("profiles").update({ display_name: name }).eq("id", data.user.id);
+  if (error) {
+    console.error("saveDisplayName", error.message);
+    return { error: nameSaveError(error) };
+  }
+  // Bài cũ của người này đổi tên tác giả, làm mới các trang có hiện tên.
+  revalidatePath("/");
+  revalidatePath("/review");
+  for (const route of ["/review/[slug]", "/phim/[slug]", "/phim/[slug]/review"]) revalidatePath(route, "page");
+  return { ok: true };
+}
 
 /** Mỗi người một dòng mỗi phim: có rồi thì sửa, chưa có thì thêm. RLS kiểm tra quyền. */
 async function saveReview(
@@ -37,7 +61,7 @@ async function saveReview(
   const updated = await db.from("reviews").update(values).eq("film_id", filmId).eq("author_id", data.user.id).select("slug,status");
   if (updated.error) {
     console.error("saveReview update", updated.error.message);
-    return { state: FAILED, slug: null };
+    return { state: saveError(updated.error.message), slug: null };
   }
   if (updated.data.length) {
     const [row] = updated.data;
@@ -51,7 +75,7 @@ async function saveReview(
     .single();
   if (inserted.error) {
     console.error("saveReview insert", inserted.error.message);
-    return { state: FAILED, slug: null };
+    return { state: saveError(inserted.error.message), slug: null };
   }
   return { state: { ok: true }, slug: inserted.data.slug };
 }
@@ -91,6 +115,12 @@ export async function submitReview(_prev: ActionState, form: FormData): Promise<
   if (title.length < 5 || title.length > 150) return { error: "Tiêu đề dài từ 5 đến 150 ký tự." };
   if (content.length < 50 || content.length > 20000) return { error: "Nội dung dài từ 50 đến 20.000 ký tự." };
   if (tags.length > 5 || tags.some((t) => t.length > 30)) return { error: "Tối đa 5 tag, mỗi tag không quá 30 ký tự." };
+
+  // Ô tên chỉ có khi tài khoản chưa đặt tên. Lưu tên trước, vì database đòi có tên mới nhận bài.
+  if (form.has("display_name")) {
+    const named = await saveDisplayName(text("display_name"));
+    if (!named.ok) return named;
+  }
 
   const { state, slug, hidden } = await saveReview(filmId, { score, title, content, spoiler: form.get("spoiler") === "on", tags });
   if (!state.ok) return state;
