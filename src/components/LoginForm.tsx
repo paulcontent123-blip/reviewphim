@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { browserClient } from "@/lib/supabase/browser";
 
 const MESSAGES: Record<string, string> = {
@@ -17,6 +17,9 @@ export function LoginForm({ next }: { next: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
   const [notice, setNotice] = useState<string>();
+  // false trong HTML từ máy chủ: JavaScript chưa chạy thì trình duyệt sẽ tự gửi form, lộ mật khẩu.
+  const [ready, setReady] = useState(false);
+  useEffect(() => setReady(true), []);
 
   const run = async (task: (db: Db, callback: string) => Promise<void>) => {
     setError(undefined);
@@ -68,7 +71,8 @@ export function LoginForm({ next }: { next: string }) {
         Tiếp tục với Google
       </button>
       <p className="my-4 text-center text-xs text-fg3">hoặc dùng email</p>
-      <form className="space-y-3" onSubmit={submit}>
+      {/* method="post" phòng khi form vẫn bị gửi: dữ liệu không nằm trên địa chỉ. */}
+      <form method="post" className="space-y-3" onSubmit={submit}>
         <label className="block text-sm font-semibold">
           Email
           <input name="email" type="email" required autoComplete="email" className="field mt-1" />
@@ -94,7 +98,7 @@ export function LoginForm({ next }: { next: string }) {
             {notice}
           </p>
         )}
-        <button type="submit" disabled={busy} className="btn-gold w-full">
+        <button type="submit" disabled={busy || !ready} className="btn-gold w-full">
           {signUp ? "Đăng ký" : "Đăng nhập"}
         </button>
       </form>
