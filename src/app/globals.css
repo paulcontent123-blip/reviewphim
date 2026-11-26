@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #faf8f5;
+  --bg2: #ffffff;
+  --bg3: #f2efe9;
+  --bg4: #e8e4dc;
+  --border: #ddd8cf;
+  --fg: #1a1814;
+  --fg2: #5a5650;
+  --fg3: #6b665e; /* demo: #9A958E, làm đậm hơn để đủ tương phản cho chữ nhỏ */
+  --gold: #c47d10;
+  --gold-text: #8f5807; /* gold đậm cho chữ và nền nút, đủ tương phản */
+  --crimson: #c53030;
+  --green: #2a8a45;
+  --blue: #1565c0;
+  color-scheme: light;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+@layer components {
+  .wrap {
+    @apply mx-auto w-full max-w-page px-4 py-6 sm:px-5;
+  }
+  .btn {
+    @apply inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-lg px-4 text-sm font-semibold transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue disabled:opacity-50;
+  }
+  .btn-gold {
+    @apply btn bg-goldtext text-white;
+  }
+  .btn-ghost {
+    @apply btn border border-line bg-bg3 text-fg2;
+  }
+  .card {
+    @apply rounded-2xl border border-line bg-bg2;
+  }
+  .chip {
+    @apply inline-flex min-h-[44px] items-center rounded-full border border-line bg-bg3 px-3.5 text-[13px] text-fg2 hover:border-gold hover:text-fg aria-[current=page]:border-gold aria-[current=page]:bg-bg4 aria-[current=page]:font-semibold aria-[current=page]:text-fg;
+  }
+  .sec-title {
+    @apply font-display text-xl font-bold;
+  }
+  .more {
+    @apply flex min-h-[44px] shrink-0 items-center text-sm font-medium text-goldtext;
+  }
+  .field {
+    @apply min-h-[44px] w-full rounded-lg border border-line bg-bg3 px-3 py-2 text-base font-normal outline-none focus:border-gold sm:text-sm;
+  }
+  .md > * + * {
+    @apply mt-4;
+  }
+  .md h2,
+  .md h3 {
+    @apply font-display text-xl font-bold;
+  }
+  .md ul {
+    @apply list-disc pl-5;
+  }
+  .md ol {
+    @apply list-decimal pl-5;
+  }
+  .md blockquote {
+    @apply border-l-4 border-gold pl-4 italic text-fg2;
+  }
+  .md a {
+    @apply text-blue underline;
+  }
+}

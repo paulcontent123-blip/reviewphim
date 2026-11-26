@@ -1,0 +1,1406 @@
+<title>ReviewPhim.vn</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,500&display=swap">
+<style>
+/* ===== TOKENS ===== */
+:root{
+  --bg:#FAF8F5;--bg2:#FFFFFF;--bg3:#F2EFE9;--bg4:#E8E4DC;
+  --border:#DDD8CF;--border2:#C8C2B8;
+  --fg:#1A1814;--fg2:#5A5650;--fg3:#9A958E;
+  --gold:#C47D10;--gold2:#E8A040;
+  --crimson:#C53030;--crimson2:#E05050;
+  --green:#2A8A45;--blue:#1565C0;
+  --tag-bg:#EDE9E2;
+  --radius:10px;--radius-lg:16px;
+  --nav-h:56px;
+  color-scheme:light;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:14px}
+body{background:var(--bg);color:var(--fg);font-family:'Be Vietnam Pro',system-ui,sans-serif;line-height:1.6;min-height:100vh}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer;border:none;background:none;font-family:inherit;color:inherit}
+input,select,textarea{font-family:inherit;color:var(--fg);background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:7px 11px;font-size:13px;outline:none;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--gold)}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+
+/* ===== NAV ===== */
+.nav{position:sticky;top:0;z-index:200;background:rgba(250,248,245,.96);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);height:var(--nav-h)}
+.nav-inner{max-width:1280px;margin:0 auto;padding:0 20px;display:flex;align-items:center;gap:16px;height:100%}
+.logo{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:3px;flex-shrink:0}
+.logo-dot{color:var(--crimson)}
+.logo-vn{font-size:10px;font-weight:600;color:var(--fg3);letter-spacing:.05em;align-self:flex-end;margin-bottom:3px}
+.nav-links{display:flex;align-items:center;gap:1px;overflow-x:auto;scrollbar-width:none;flex-shrink:1;min-width:0}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-link{padding:5px 10px;border-radius:6px;font-size:12.5px;font-weight:500;color:var(--fg2);white-space:nowrap;cursor:pointer;transition:all .15s;flex-shrink:0}
+.nav-link:hover,.nav-link.active{color:var(--fg);background:var(--bg3)}
+.nav-link.active{color:var(--gold)}
+.nav-right{display:flex;align-items:center;gap:7px;flex-shrink:0;margin-left:auto}
+.search-wrap{display:flex;align-items:center;gap:7px;background:var(--bg3);border:1px solid var(--border);border-radius:18px;padding:5px 12px}
+.search-wrap input{background:none;border:none;padding:0;width:130px;font-size:12px}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;transition:opacity .15s,transform .1s}
+.btn:hover{opacity:.88}.btn:active{transform:scale(.97)}
+.btn-gold{background:var(--gold);color:#fff}
+.btn-crimson{background:var(--crimson);color:#fff}
+.btn-ghost{background:var(--bg3);color:var(--fg2);border:1px solid var(--border)}
+.btn-sm{padding:5px 11px;font-size:12px}
+.btn-outline{border:1px solid var(--gold);color:var(--gold);background:transparent}
+.nav-av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--crimson));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;cursor:pointer;position:relative;flex-shrink:0}
+.nav-dot{position:absolute;top:-1px;right:-1px;width:7px;height:7px;border-radius:50%;background:var(--crimson);border:2px solid var(--bg)}
+
+/* ===== PAGES ===== */
+.page{display:none}.page.active{display:block}
+.wrap{max-width:1280px;margin:0 auto;padding:24px 20px}
+
+/* ===== UTILITY ===== */
+.sec-gap{margin-bottom:30px}
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.sec-title{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;display:flex;align-items:center;gap:9px}
+.sec-label{font-family:'Be Vietnam Pro',sans-serif;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);background:rgba(196,125,16,.1);padding:2px 7px;border-radius:4px}
+.see-all{font-size:12px;color:var(--gold);font-weight:600;cursor:pointer;white-space:nowrap}
+.badge{display:inline-flex;padding:2px 7px;border-radius:4px;font-size:10.5px;font-weight:600}
+.badge-gold{background:rgba(196,125,16,.12);color:var(--gold)}
+.badge-blue{background:rgba(21,101,192,.1);color:var(--blue)}
+.badge-green{background:rgba(42,138,69,.1);color:var(--green)}
+.badge-red{background:rgba(197,48,48,.1);color:var(--crimson2)}
+.divider{height:1px;background:var(--border);margin:16px 0}
+.toast{position:fixed;bottom:22px;right:22px;z-index:999;background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:13px;font-weight:600;display:none;align-items:center;gap:7px;box-shadow:0 4px 20px rgba(0,0,0,.18)}
+.toast.show{display:flex}
+
+/* ===== FILM CARDS ===== */
+.film-row{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin}
+.film-card{flex-shrink:0;width:140px;cursor:pointer;transition:transform .18s}
+.film-card:hover{transform:translateY(-3px)}
+.poster{aspect-ratio:2/3;border-radius:var(--radius);overflow:hidden;position:relative;background:var(--bg3);margin-bottom:7px;box-shadow:0 2px 10px rgba(0,0,0,.14);transition:box-shadow .18s}
+.film-card:hover .poster{box-shadow:0 8px 24px rgba(0,0,0,.22)}
+.poster-emoji{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:36px}
+.poster-badge{position:absolute;top:6px;left:6px;background:var(--crimson);color:#fff;font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px}
+.poster-badge.new{background:var(--green)}.poster-badge.hot{background:#E05050}
+.poster-score{position:absolute;bottom:6px;right:6px;background:rgba(10,8,5,.8);backdrop-filter:blur(4px);color:var(--gold2);font-size:10.5px;font-weight:700;padding:2px 6px;border-radius:4px;border:1px solid rgba(196,125,16,.3)}
+.card-title{font-size:11.5px;font-weight:600;line-height:1.3;margin-bottom:2px}
+.card-meta{font-size:10px;color:var(--fg3);display:flex;gap:4px;align-items:center}
+.card-ep{font-size:10px;color:var(--green);font-weight:600}
+
+/* ===== HERO ===== */
+.hero{position:relative;overflow:hidden;border-radius:var(--radius-lg);min-height:420px;display:flex;align-items:flex-end;background:#0a0a14;margin-bottom:24px}
+.hero-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;overflow:hidden;pointer-events:none}
+.hero-emoji-bg{font-size:200px;opacity:.15;filter:blur(2px);margin-right:-10px;user-select:none}
+.hero-ov1{position:absolute;inset:0;background:linear-gradient(to right,rgba(10,10,20,.98) 28%,rgba(10,10,20,.4) 68%,rgba(10,10,20,.08))}
+.hero-ov2{position:absolute;inset:0;background:linear-gradient(to top,rgba(10,10,20,.96) 0%,transparent 55%)}
+.hero-thumbs{position:absolute;right:0;top:0;bottom:0;width:35%;display:flex;flex-direction:column;gap:4px;padding:4px;overflow:hidden;z-index:1}
+.hero-thumb{flex:1;border-radius:7px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:26px;opacity:.7}
+.hero-content{position:relative;z-index:2;padding:28px 28px 36px;max-width:560px}
+.hero-eyebrow{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--crimson2);margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.hero-eyebrow::before{content:"";width:22px;height:2px;background:var(--crimson)}
+.hero-title{font-family:'Playfair Display',serif;font-size:36px;font-weight:700;line-height:1.1;margin-bottom:6px;color:#F5F0E8}
+.hero-ori{font-size:13px;color:rgba(245,240,232,.45);margin-bottom:12px;font-style:italic}
+.hero-tags{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.hero-tag{font-size:10.5px;padding:2px 9px;border-radius:4px;background:rgba(255,255,255,.1);color:rgba(245,240,232,.72);border:1px solid rgba(255,255,255,.1)}
+.hero-score-row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.hero-imdb{background:#F5C518;color:#000;font-size:10px;font-weight:800;padding:2px 7px;border-radius:3px}
+.hero-score{font-size:28px;font-weight:800;color:#F5C870;line-height:1}
+.hero-score-sub{font-size:10px;color:rgba(245,240,232,.45)}
+.hero-desc{font-size:12.5px;color:rgba(245,240,232,.6);line-height:1.65;margin-bottom:18px;max-width:440px}
+.hero-btns{display:flex;gap:8px;flex-wrap:wrap}
+.btn-play{background:var(--gold2);color:#0a0a14;font-size:13px;font-weight:700;padding:9px 22px;border-radius:9px;display:flex;align-items:center;gap:7px}
+.btn-trailer{background:rgba(255,255,255,.1);color:rgba(245,240,232,.88);border:1px solid rgba(255,255,255,.16);padding:9px 18px;border-radius:9px;font-weight:600;font-size:13px}
+
+/* ===== HOME LAYOUT ===== */
+.home-grid{display:grid;grid-template-columns:1fr 284px;gap:22px;align-items:start}
+.sidebar{display:flex;flex-direction:column;gap:14px;position:sticky;top:calc(var(--nav-h) + 16px)}
+.sb-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.sb-title{font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--fg2);padding:11px 13px 9px;border-bottom:2px solid var(--gold);display:flex;align-items:center;gap:6px}
+.rank-item{display:flex;align-items:center;gap:9px;padding:8px 13px;cursor:pointer;transition:background .1s;border-bottom:1px solid var(--border)}
+.rank-item:last-child{border-bottom:none}
+.rank-item:hover{background:var(--bg3)}
+.rank-num{font-size:15px;font-weight:800;color:var(--border2);width:18px;text-align:center;flex-shrink:0}
+.rank-num.r1{color:#C47D10}.rank-num.r2{color:#9A958E}.rank-num.r3{color:#A0785A}
+.rank-thumb{width:32px;height:46px;border-radius:4px;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.rank-info{flex:1;min-width:0}
+.rank-name{font-size:11.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rank-sub{font-size:10px;color:var(--fg3);margin-top:1px}
+.rank-right{text-align:right;flex-shrink:0}
+.rank-right strong{display:block;font-size:11.5px;font-weight:700;color:var(--fg2)}
+.rank-right span{font-size:9.5px;color:var(--fg3)}
+
+/* ===== NEWS ===== */
+.news-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.news-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:border-color .15s,transform .15s}
+.news-card:hover{border-color:var(--gold);transform:translateY(-2px)}
+.news-cover{height:120px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:40px;position:relative}
+.news-cat{position:absolute;top:8px;left:8px;font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:3px;background:var(--crimson);color:#fff;text-transform:uppercase;letter-spacing:.04em}
+.news-body{padding:11px}
+.news-title{font-size:12.5px;font-weight:700;line-height:1.35;margin-bottom:5px;text-wrap:balance}
+.news-meta{font-size:10px;color:var(--fg3);display:flex;gap:7px}
+/* news sidebar list */
+.news-list-item{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--border);cursor:pointer}
+.news-list-item:last-child{border-bottom:none}
+.news-list-item:hover .news-list-title{color:var(--gold)}
+.news-list-thumb{width:52px;height:52px;border-radius:6px;background:var(--bg3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px}
+.news-list-title{font-size:12px;font-weight:600;line-height:1.3;transition:color .15s}
+.news-list-sub{font-size:10px;color:var(--fg3);margin-top:3px}
+/* news full page */
+.news-full-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.news-full-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:border-color .15s,transform .15s}
+.news-full-card:hover{border-color:var(--gold);transform:translateY(-2px)}
+.news-full-cover{height:140px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:44px;position:relative}
+.news-full-body{padding:12px}
+.news-full-title{font-size:13px;font-weight:700;line-height:1.35;margin-bottom:5px}
+.news-full-excerpt{font-size:11.5px;color:var(--fg2);line-height:1.55;margin-bottom:7px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.news-full-meta{font-size:10px;color:var(--fg3);display:flex;gap:8px}
+
+/* ===== REVIEW CARDS ===== */
+.review-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.rv-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:border-color .15s,transform .15s}
+.rv-card:hover{border-color:var(--gold);transform:translateY(-2px)}
+.rv-cover{height:130px;display:flex;align-items:center;justify-content:center;font-size:50px;position:relative}
+.rv-cover .grad{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,var(--bg2))}
+.rv-body{padding:12px}
+.rv-label{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
+.rv-title{font-size:14px;font-weight:700;line-height:1.3;margin-bottom:4px}
+.rv-excerpt{font-size:11.5px;color:var(--fg2);line-height:1.55;margin-bottom:9px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rv-footer{display:flex;align-items:center;justify-content:space-between}
+.reviewer{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--fg2)}
+.reviewer-av{width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--crimson));font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;color:#fff}
+.stars{color:var(--gold);font-size:11.5px}
+
+/* ===== FILM DETAIL ===== */
+.detail-hero{position:relative;height:400px;overflow:hidden;display:flex;align-items:flex-end;background:#0a0a14}
+.detail-bg-emoji{position:absolute;right:-20px;top:-10px;font-size:180px;opacity:.12;filter:blur(1px);pointer-events:none}
+.detail-ov1{position:absolute;inset:0;background:linear-gradient(to right,rgba(10,10,20,.99) 24%,rgba(10,10,20,.5) 60%,transparent)}
+.detail-ov2{position:absolute;inset:0;background:linear-gradient(to top,rgba(10,10,20,.97) 0%,transparent 55%)}
+.detail-info{position:absolute;bottom:0;left:0;right:0;z-index:2;padding:0 20px 24px;max-width:1280px;margin:0 auto;display:flex;gap:18px;align-items:flex-end}
+.detail-poster-box{width:108px;height:158px;border-radius:9px;background:var(--bg3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:44px;box-shadow:0 6px 28px rgba(0,0,0,.45);border:2px solid rgba(255,255,255,.1)}
+.detail-meta{flex:1;min-width:0}
+.detail-title{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;line-height:1.1;color:#F5F0E8;margin-bottom:4px}
+.detail-ori{font-size:12px;color:rgba(245,240,232,.45);font-style:italic;margin-bottom:9px}
+.detail-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:9px}
+.d-tag{font-size:10.5px;padding:2px 8px;border-radius:4px;background:rgba(255,255,255,.08);color:rgba(245,240,232,.72)}
+.d-tag.genre{background:rgba(196,125,16,.2);color:var(--gold2)}
+.detail-score-row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.d-imdb{background:#F5C518;color:#000;font-size:10px;font-weight:800;padding:2px 7px;border-radius:3px}
+.d-score{font-size:24px;font-weight:800;color:#F5C870}
+.d-views{font-size:11px;color:rgba(245,240,232,.45)}
+.detail-btns{display:flex;gap:7px;flex-wrap:wrap}
+.detail-body{max-width:1280px;margin:0 auto;padding:22px 20px;display:grid;grid-template-columns:1fr 300px;gap:22px}
+.detail-main{min-width:0}
+.detail-side{display:flex;flex-direction:column;gap:14px}
+.d-section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px}
+.d-sec-title{font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.d-sec-title::before{content:"";width:3px;height:14px;background:var(--gold);border-radius:2px;flex-shrink:0}
+.actor-list{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px}
+.actor-chip{flex-shrink:0;text-align:center;width:66px}
+.actor-av{width:48px;height:48px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:20px;margin:0 auto 4px;border:2px solid var(--border)}
+.actor-name{font-size:10.5px;font-weight:600;line-height:1.2}
+.actor-role{font-size:9.5px;color:var(--fg3)}
+.ep-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:4px}
+.ep-btn{padding:5px;text-align:center;border-radius:5px;font-size:11.5px;font-weight:600;background:var(--bg3);border:1px solid var(--border);cursor:pointer;transition:all .15s}
+.ep-btn:hover,.ep-btn.cur{background:var(--crimson);color:#fff;border-color:var(--crimson)}
+.ep-btn.done{background:var(--gold);color:#fff;border-color:var(--gold)}
+.watch-opt{display:flex;align-items:center;gap:10px;padding:10px;border-radius:var(--radius);background:var(--bg3);border:1px solid var(--border);cursor:pointer;transition:all .15s;margin-bottom:7px}
+.watch-opt:last-child{margin-bottom:0}
+.watch-opt:hover{border-color:var(--gold);background:rgba(196,125,16,.05)}
+.watch-logo{width:36px;height:36px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;background:var(--bg4);flex-shrink:0;font-weight:800}
+.watch-name{font-size:12.5px;font-weight:600}
+.watch-type{font-size:10.5px;color:var(--fg3)}
+.watch-action{margin-left:auto;font-size:11.5px;color:var(--gold);font-weight:700}
+.rv-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:13px;margin-bottom:10px}
+.rv-item:last-child{margin-bottom:0}
+.rv-item-hd{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.rv-av{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff}
+.rv-item-name{font-size:12.5px;font-weight:600}
+.rv-item-date{font-size:10px;color:var(--fg3)}
+.rv-item-score{font-size:15px;font-weight:800;color:var(--gold);margin-left:auto}
+.rv-body-text{font-size:12.5px;color:var(--fg2);line-height:1.6}
+.rv-actions{display:flex;gap:12px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+.rv-act{font-size:11.5px;color:var(--fg3);display:flex;align-items:center;gap:4px;cursor:pointer;transition:color .15s}
+.rv-act:hover{color:var(--gold)}.rv-act.liked{color:var(--crimson)}
+
+/* ===== SCHEDULE ===== */
+.sched-tabs{display:flex;gap:5px;margin-bottom:14px;overflow-x:auto}
+.s-tab{padding:5px 13px;border-radius:5px;font-size:12px;font-weight:600;background:var(--bg3);color:var(--fg2);white-space:nowrap;cursor:pointer;transition:all .15s}
+.s-tab.active{background:var(--gold);color:#fff}
+.cinema-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.cinema-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:13px;display:flex;gap:10px;align-items:flex-start}
+.cinema-poster{width:48px;height:70px;border-radius:5px;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.cinema-name{font-size:12.5px;font-weight:600;margin-bottom:2px}
+.cinema-chain{font-size:10.5px;color:var(--fg3);margin-bottom:6px}
+.showtimes{display:flex;gap:4px;flex-wrap:wrap}
+.st{font-size:11px;font-weight:600;padding:2px 6px;border-radius:3px;background:rgba(196,125,16,.1);color:var(--gold);border:1px solid rgba(196,125,16,.2);cursor:pointer;transition:all .1s}
+.st:hover{background:var(--gold);color:#fff}
+.api-banner{background:linear-gradient(135deg,rgba(21,101,192,.07),rgba(21,101,192,.03));border:1px solid rgba(21,101,192,.18);border-radius:var(--radius);padding:11px 15px;margin-bottom:18px;display:flex;gap:10px}
+.api-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.api-title{font-size:12px;font-weight:700;color:var(--blue);margin-bottom:2px}
+.api-body{font-size:11.5px;color:var(--fg2);line-height:1.5}
+.api-tags{display:flex;gap:5px;margin-top:5px;flex-wrap:wrap}
+.api-tag{font-size:10px;padding:1px 6px;border-radius:3px;background:rgba(21,101,192,.1);color:var(--blue);font-weight:600}
+
+/* ===== COMMUNITY ===== */
+.comm-layout{display:grid;grid-template-columns:200px 1fr 240px;gap:16px;align-items:start}
+.comm-side-menu{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:12px}
+.csm-item{display:flex;align-items:center;gap:8px;padding:9px 12px;font-size:12.5px;font-weight:500;color:var(--fg2);cursor:pointer;transition:all .1s;border-left:2px solid transparent}
+.csm-item:hover{background:var(--bg3)}.csm-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(196,125,16,.05)}
+.hashtag-cloud{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px}
+.ht-title{font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--fg3);margin-bottom:9px}
+.ht-pills{display:flex;flex-wrap:wrap;gap:5px}
+.ht-pill{font-size:11px;padding:3px 9px;border-radius:10px;background:rgba(21,101,192,.07);color:var(--blue);cursor:pointer;border:1px solid rgba(21,101,192,.13);transition:all .15s}
+.ht-pill:hover{background:var(--blue);color:#fff}
+.post-compose{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:13px;margin-bottom:12px}
+.post-compose textarea{resize:none;height:70px;margin-bottom:8px;border-radius:var(--radius)}
+.compose-actions{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.compose-tags{display:flex;gap:4px;flex-wrap:wrap}
+.c-tag-btn{font-size:11px;padding:2px 8px;border-radius:4px;background:var(--bg3);color:var(--fg2);border:1px solid var(--border);cursor:pointer;transition:all .15s}
+.c-tag-btn:hover,.c-tag-btn.on{border-color:var(--gold);color:var(--gold);background:rgba(196,125,16,.07)}
+.post-feed{display:flex;flex-direction:column;gap:10px}
+.post-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:13px;cursor:pointer;transition:border-color .15s}
+.post-card:hover{border-color:var(--gold)}
+.post-hd{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.post-av{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;background:linear-gradient(135deg,var(--gold),var(--crimson));color:#fff}
+.post-author{font-size:12.5px;font-weight:600}
+.post-time{font-size:10.5px;color:var(--fg3)}
+.post-film-ref{display:inline-flex;align-items:center;gap:4px;background:rgba(196,125,16,.08);border-radius:4px;padding:2px 8px;margin-bottom:8px;font-size:11.5px;color:var(--gold);border:1px solid rgba(196,125,16,.16);cursor:pointer}
+.post-film-ref:hover{background:rgba(196,125,16,.14)}
+.post-ht{color:var(--blue);cursor:pointer;font-weight:500}
+.post-ht:hover{text-decoration:underline}
+.post-body{font-size:12.5px;color:var(--fg2);line-height:1.6;margin-bottom:9px}
+.post-acts{display:flex;gap:12px}
+.post-act{display:flex;align-items:center;gap:4px;font-size:11.5px;color:var(--fg3);cursor:pointer;transition:color .15s}
+.post-act:hover{color:var(--gold)}.post-act.liked{color:var(--crimson)}
+.trending-side-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:13px;margin-bottom:12px}
+.tr-title{font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--fg3);margin-bottom:9px}
+.tr-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);cursor:pointer}
+.tr-item:last-child{border-bottom:none}.tr-item:hover .tr-name{color:var(--gold)}
+.tr-num{font-size:13px;font-weight:800;color:var(--border2);width:16px}
+.tr-name{flex:1;font-size:12.5px;font-weight:500;transition:color .15s}
+.tr-cnt{font-size:10px;color:var(--fg3)}
+
+/* ===== WATCHLIST ===== */
+.wl-tabs{display:flex;gap:5px;margin-bottom:18px}
+.wl-tab{padding:5px 14px;border-radius:6px;font-size:12.5px;font-weight:600;background:var(--bg3);color:var(--fg2);cursor:pointer;border:1px solid var(--border);transition:all .15s}
+.wl-tab.active{background:var(--gold);color:#fff;border-color:var(--gold)}
+.wl-section{margin-bottom:26px}
+.wl-sec-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;margin-bottom:11px;padding-bottom:7px;border-bottom:2px solid var(--gold);display:flex;align-items:center;gap:7px}
+.wl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.wl-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:transform .15s,border-color .15s}
+.wl-card:hover{transform:translateY(-3px);border-color:var(--gold)}
+.wl-poster{aspect-ratio:2/3;background:var(--bg3);position:relative;display:flex;align-items:center;justify-content:center;font-size:36px}
+.wl-bar{position:absolute;bottom:0;left:0;right:0;padding:6px;background:linear-gradient(to top,rgba(10,8,5,.9),transparent);display:flex;align-items:center;gap:5px}
+.wl-prog{flex:1;height:3px;background:rgba(255,255,255,.18);border-radius:2px}
+.wl-prog-fill{height:100%;background:var(--gold2);border-radius:2px}
+.wl-prog-txt{font-size:9px;color:var(--gold2);font-weight:700}
+.wl-info{padding:8px 10px}
+.wl-title{font-size:11.5px;font-weight:700;margin-bottom:2px;line-height:1.3}
+.wl-ori{font-size:10px;color:var(--fg3);margin-bottom:2px}
+.wl-actors{font-size:10px;color:var(--fg2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:3px}
+.wl-ep{font-size:10.5px;color:var(--gold);font-weight:600}
+
+/* ===== WATCH PARTY ===== */
+.party-wrap{display:grid;grid-template-columns:1fr 280px;gap:16px;padding:20px}
+.party-player{background:#000;border-radius:var(--radius-lg);overflow:hidden;aspect-ratio:16/9;position:relative;border:1px solid var(--border)}
+.party-player iframe{position:absolute;inset:0;width:100%;height:100%;border:none}
+.party-side{display:flex;flex-direction:column;gap:11px}
+.party-viewers{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px}
+.viewer-list{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.v-chip{display:flex;align-items:center;gap:4px;background:var(--bg3);border-radius:16px;padding:2px 8px 2px 2px;font-size:11.5px;border:1px solid var(--border)}
+.v-av{width:18px;height:18px;border-radius:50%;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;color:#fff}
+.v-dot{width:5px;height:5px;border-radius:50%;background:var(--green);margin-left:2px}
+.party-chat{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);display:flex;flex-direction:column;min-height:260px}
+.chat-hd{padding:10px 12px;border-bottom:1px solid var(--border);font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:6px}
+.chat-msgs{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px}
+.c-msg{font-size:11.5px;line-height:1.5}
+.c-user{font-weight:700;color:var(--gold);margin-right:4px}
+.c-ts{font-size:9.5px;color:var(--fg3);display:block;margin-bottom:1px}
+.chat-inp{padding:8px;border-top:1px solid var(--border);display:flex;gap:6px}
+.chat-inp input{flex:1;border-radius:14px;font-size:11.5px;padding:5px 10px}
+.send-btn{width:26px;height:26px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;font-size:11px;flex-shrink:0}
+
+/* ===== PARTNER PAGE ===== */
+.partner-hero{background:linear-gradient(135deg,#1a0a2a,#0a1a2a);border-radius:var(--radius-lg);padding:44px 36px;text-align:center;margin-bottom:24px;position:relative;overflow:hidden}
+.ph-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:140px;opacity:.05}
+.ph-eyebrow{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;position:relative}
+.ph-title{font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:#F5F0E8;margin-bottom:8px;position:relative}
+.ph-sub{font-size:14px;color:rgba(245,240,232,.6);max-width:520px;margin:0 auto 20px;position:relative}
+.ph-btns{display:flex;gap:10px;justify-content:center;position:relative}
+.partner-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.p-stat{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;text-align:center}
+.p-stat-num{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--gold);display:block;margin-bottom:3px}
+.p-stat-label{font-size:11.5px;color:var(--fg2)}
+/* partner types */
+.partner-types-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-bottom:24px}
+.p-type{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;cursor:pointer;transition:all .15s}
+.p-type:hover{border-color:var(--gold);transform:translateY(-2px)}
+.p-type-icon{font-size:32px;margin-bottom:10px}
+.p-type-title{font-size:14.5px;font-weight:700;margin-bottom:6px}
+.p-type-desc{font-size:12px;color:var(--fg2);line-height:1.6;margin-bottom:9px}
+.p-type-partners{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:7px}
+.p-partner-logo{font-size:10px;padding:2px 8px;border-radius:3px;background:var(--bg3);color:var(--fg2);border:1px solid var(--border);font-weight:600}
+.p-type-tags{display:flex;gap:5px;flex-wrap:wrap}
+.p-type-tag{font-size:10px;padding:2px 7px;border-radius:3px;background:rgba(196,125,16,.1);color:var(--gold);font-weight:600}
+/* ads & subscription section */
+.p-special-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.p-special{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px}
+.p-special-title{font-size:15px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.sub-tiers{display:flex;flex-direction:column;gap:9px}
+.sub-tier{border:1px solid var(--border);border-radius:var(--radius);padding:13px;position:relative;transition:border-color .15s}
+.sub-tier.popular{border-color:var(--gold);background:rgba(196,125,16,.03)}
+.sub-tier-popular{position:absolute;top:-8px;right:12px;background:var(--gold);color:#fff;font-size:9px;font-weight:700;padding:1px 8px;border-radius:8px}
+.sub-tier-name{font-size:13px;font-weight:700;margin-bottom:2px}
+.sub-tier-price{font-size:11.5px;color:var(--gold);font-weight:600;margin-bottom:5px}
+.sub-tier-features{font-size:11px;color:var(--fg2);line-height:1.7}
+.ads-formats{display:flex;flex-direction:column;gap:7px}
+.ads-format{display:flex;gap:10px;align-items:flex-start;padding:9px;background:var(--bg3);border-radius:var(--radius);border:1px solid var(--border)}
+.ads-format-icon{font-size:18px;flex-shrink:0;width:28px;text-align:center}
+.ads-format-name{font-size:12.5px;font-weight:600;margin-bottom:1px}
+.ads-format-desc{font-size:11px;color:var(--fg2)}
+/* partner form */
+.p-form-wrap{max-width:660px;margin:0 auto}
+.p-form{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:26px}
+.p-form-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;margin-bottom:18px;text-align:center}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.form-group{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.form-label{font-size:11.5px;font-weight:600;color:var(--fg2)}
+/* homepage partner snippet */
+.partner-snippet{background:linear-gradient(135deg,rgba(196,125,16,.08),rgba(21,101,192,.06));border:1px solid rgba(196,125,16,.18);border-radius:var(--radius-lg);padding:16px 18px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:border-color .15s}
+.partner-snippet:hover{border-color:var(--gold)}
+.partner-snippet-logos{display:flex;gap:5px;flex-shrink:0}
+.ps-logo{width:32px;height:32px;border-radius:6px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:12px;border:1px solid var(--border);font-weight:800}
+.partner-snippet-info{flex:1}
+.partner-snippet-title{font-size:13px;font-weight:700;margin-bottom:2px}
+.partner-snippet-sub{font-size:11.5px;color:var(--fg2)}
+
+/* ===== APP CTA ===== */
+.app-cta-box{background:linear-gradient(135deg,#1a0a2a,#0a1a30);border-radius:var(--radius-lg);padding:16px;text-align:center;border:1px solid rgba(196,125,16,.18)}
+.app-cta-title{font-size:13px;font-weight:700;color:#F5F0E8;margin-bottom:3px}
+.app-cta-sub{font-size:10.5px;color:rgba(245,240,232,.5);margin-bottom:12px}
+.app-btns{display:flex;gap:7px;justify-content:center}
+.app-btn{display:flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(255,255,255,.1);border-radius:7px;border:1px solid rgba(255,255,255,.16);font-size:11.5px;font-weight:600;color:rgba(245,240,232,.88);cursor:pointer;transition:background .15s}
+.app-btn:hover{background:rgba(255,255,255,.18)}
+
+/* ===== NEWS PAGE ===== */
+.news-tabs{display:flex;gap:5px;margin-bottom:18px;overflow-x:auto}
+.n-tab{padding:5px 14px;border-radius:5px;font-size:12px;font-weight:600;background:var(--bg3);color:var(--fg2);white-space:nowrap;cursor:pointer;transition:all .15s}
+.n-tab.active{background:var(--gold);color:#fff}
+.news-featured{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px}
+.nf-main{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:border-color .15s}
+.nf-main:hover{border-color:var(--gold)}
+.nf-cover-main{height:220px;background:linear-gradient(135deg,#1a0a2e,#0a2e1a);display:flex;align-items:center;justify-content:center;font-size:70px;position:relative}
+.nf-cat{position:absolute;top:10px;left:10px;font-size:10px;font-weight:700;padding:3px 9px;border-radius:4px;text-transform:uppercase;letter-spacing:.04em}
+.nf-body{padding:15px}
+.nf-title{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;margin-bottom:7px;line-height:1.3}
+.nf-excerpt{font-size:12.5px;color:var(--fg2);line-height:1.6;margin-bottom:9px}
+.nf-meta{font-size:10.5px;color:var(--fg3);display:flex;gap:9px}
+.nf-side{display:flex;flex-direction:column;gap:11px}
+.nf-side-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);display:flex;overflow:hidden;cursor:pointer;transition:border-color .15s}
+.nf-side-card:hover{border-color:var(--gold)}
+.nf-side-cover{width:90px;flex-shrink:0;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:28px}
+.nf-side-body{padding:10px 12px;min-width:0}
+.nf-side-title{font-size:12.5px;font-weight:700;line-height:1.3;margin-bottom:4px}
+.nf-side-meta{font-size:10px;color:var(--fg3)}
+.news-releases{margin-bottom:28px}
+.release-list{display:flex;flex-direction:column;gap:9px}
+.release-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:13px;display:flex;gap:12px;align-items:flex-start;cursor:pointer;transition:all .15s}
+.release-item:hover{border-color:var(--gold);transform:translateX(2px)}
+.release-date{background:var(--crimson);color:#fff;border-radius:6px;padding:5px 8px;text-align:center;flex-shrink:0;min-width:44px}
+.release-day{font-size:18px;font-weight:800;line-height:1;display:block}
+.release-month{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;display:block}
+.release-info{flex:1}
+.release-name{font-size:13px;font-weight:700;margin-bottom:3px}
+.release-meta{font-size:11px;color:var(--fg2);display:flex;gap:7px;flex-wrap:wrap}
+.release-countdown{margin-left:auto;font-size:11px;color:var(--gold);font-weight:600;white-space:nowrap}
+
+/* ===== LOGIN / ROLE SCREENS ===== */
+#screen-login,#screen-user,#screen-admin{display:none;position:fixed;inset:0;z-index:300;overflow-y:auto}
+#screen-login.show,#screen-user.show,#screen-admin.show{display:block}
+/* LOGIN */
+.login-page{min-height:100vh;background:linear-gradient(135deg,#0a0814,#14080a);display:flex;align-items:center;justify-content:center;padding:20px}
+.login-box{background:var(--bg2);border-radius:20px;padding:36px 32px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.login-logo{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;text-align:center;margin-bottom:4px}
+.login-logo span{color:var(--crimson)}
+.login-sub{text-align:center;font-size:12.5px;color:var(--fg3);margin-bottom:24px}
+.login-tabs{display:flex;gap:5px;background:var(--bg3);border-radius:8px;padding:3px;margin-bottom:20px}
+.login-tab{flex:1;text-align:center;padding:6px;border-radius:6px;font-size:12.5px;font-weight:600;cursor:pointer;transition:all .15s}
+.login-tab.active{background:var(--bg2);color:var(--gold);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.login-form{display:flex;flex-direction:column;gap:11px}
+.login-or{text-align:center;font-size:11.5px;color:var(--fg3);position:relative;margin:4px 0}
+.login-or::before,.login-or::after{content:"";position:absolute;top:50%;width:42%;height:1px;background:var(--border)}
+.login-or::before{left:0}.login-or::after{right:0}
+.demo-roles{display:flex;flex-direction:column;gap:7px;margin-top:4px}
+.demo-role-btn{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid var(--border);border-radius:9px;cursor:pointer;transition:all .15s;text-align:left}
+.demo-role-btn:hover{border-color:var(--gold);background:rgba(196,125,16,.04)}
+.demo-role-btn.admin-btn:hover{border-color:var(--crimson);background:rgba(197,48,48,.04)}
+.drb-icon{font-size:22px;flex-shrink:0}
+.drb-name{font-size:13px;font-weight:700}
+.drb-desc{font-size:10.5px;color:var(--fg3)}
+/* USER DASHBOARD */
+.user-dash{background:var(--bg);min-height:100vh}
+.user-dash-nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;gap:14px;height:var(--nav-h);position:sticky;top:0;z-index:10}
+.user-dash-logo{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;cursor:pointer}
+.user-dash-logo span{color:var(--crimson)}
+.udnav-links{display:flex;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none}
+.udnav-links::-webkit-scrollbar{display:none}
+.ud-link{padding:4px 10px;border-radius:5px;font-size:12px;font-weight:500;color:var(--fg2);cursor:pointer;white-space:nowrap;transition:all .15s}
+.ud-link:hover,.ud-link.active{background:var(--bg3);color:var(--gold)}
+.ud-wrap{max-width:1100px;margin:0 auto;padding:22px 20px;display:grid;grid-template-columns:240px 1fr;gap:20px;align-items:start}
+.ud-sidebar{display:flex;flex-direction:column;gap:14px}
+.ud-profile-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;text-align:center}
+.ud-av{width:72px;height:72px;border-radius:50%;margin:0 auto 11px;background:linear-gradient(135deg,var(--gold),var(--crimson));display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff}
+.ud-name{font-size:16px;font-weight:700;margin-bottom:2px}
+.ud-email{font-size:11px;color:var(--fg3);margin-bottom:11px}
+.ud-role-badge{display:inline-block;padding:3px 12px;border-radius:12px;font-size:10px;font-weight:700;background:rgba(196,125,16,.12);color:var(--gold);border:1px solid rgba(196,125,16,.2);margin-bottom:14px}
+.ud-stats{display:flex;justify-content:space-around;padding:11px 0;border-top:1px solid var(--border)}
+.ud-stat{text-align:center}
+.ud-stat-n{font-size:17px;font-weight:800;color:var(--gold);display:block}
+.ud-stat-l{font-size:9.5px;color:var(--fg3);text-transform:uppercase;letter-spacing:.04em}
+.ud-menu{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.ud-mi{display:flex;align-items:center;gap:8px;padding:9px 12px;font-size:12.5px;font-weight:500;color:var(--fg2);cursor:pointer;transition:all .1s;border-left:2px solid transparent}
+.ud-mi:hover{background:var(--bg3)}.ud-mi.active{color:var(--gold);border-left-color:var(--gold);background:rgba(196,125,16,.05)}
+.ud-main{min-width:0}
+/* ADMIN DASHBOARD */
+.admin-dash{background:var(--bg);min-height:100vh}
+.admin-nav{background:#1A0A14;border-bottom:1px solid rgba(197,48,48,.2);padding:0 20px;display:flex;align-items:center;gap:14px;height:var(--nav-h);position:sticky;top:0;z-index:10}
+.admin-logo{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#F5F0E8;cursor:pointer}
+.admin-logo span{color:var(--crimson2)}
+.admin-nav-links{display:flex;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none}
+.admin-nav-links::-webkit-scrollbar{display:none}
+.anl{padding:4px 10px;border-radius:5px;font-size:12px;font-weight:500;color:rgba(245,240,232,.6);cursor:pointer;white-space:nowrap;transition:all .15s}
+.anl:hover,.anl.active{background:rgba(255,255,255,.08);color:rgba(245,240,232,.92)}
+.admin-wrap{max-width:1200px;margin:0 auto;padding:22px 20px}
+.admin-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.admin-topbar-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--fg)}
+.admin-topbar-title span{color:var(--crimson)}
+.admin-kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:22px}
+.kpi-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px}
+.kpi-label{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--fg3);margin-bottom:5px}
+.kpi-num{font-size:26px;font-weight:800;color:var(--fg);font-variant-numeric:tabular-nums;display:flex;align-items:baseline;gap:5px}
+.kpi-num .unit{font-size:13px;font-weight:600;color:var(--fg3)}
+.kpi-change{font-size:10.5px;margin-top:3px;display:flex;align-items:center;gap:4px}
+.kpi-up{color:var(--green)}.kpi-down{color:var(--crimson2)}
+.admin-grid{display:grid;grid-template-columns:1fr 320px;gap:18px;align-items:start}
+.admin-panel{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:14px}
+.admin-panel-title{font-size:13px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.admin-table{width:100%;border-collapse:collapse}
+.admin-table th{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--fg3);padding:7px 9px;text-align:left;border-bottom:2px solid var(--border)}
+.admin-table td{font-size:12px;padding:9px;border-bottom:1px solid var(--border);vertical-align:middle}
+.admin-table tr:last-child td{border-bottom:none}
+.admin-table tr:hover td{background:var(--bg3)}
+.status-pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.sp-pending{background:rgba(232,160,64,.12);color:var(--gold2)}
+.sp-active{background:rgba(42,138,69,.12);color:var(--green)}
+.sp-rejected{background:rgba(197,48,48,.12);color:var(--crimson2)}
+.admin-actions{display:flex;flex-direction:column;gap:9px}
+.admin-action-item{display:flex;align-items:center;gap:10px;padding:11px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:border-color .15s}
+.admin-action-item:hover{border-color:var(--gold)}
+.aai-icon{font-size:18px;width:32px;text-align:center}
+.aai-label{font-size:12.5px;font-weight:700;display:block}
+.aai-desc{font-size:10.5px;color:var(--fg3)}
+.admin-quick-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+/* upload panel */
+.upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:28px;text-align:center;cursor:pointer;transition:border-color .15s}
+.upload-zone:hover{border-color:var(--gold)}
+.upload-zone-icon{font-size:36px;margin-bottom:9px}
+.upload-zone-text{font-size:13px;font-weight:600;margin-bottom:4px}
+.upload-zone-sub{font-size:11.5px;color:var(--fg3)}
+</style>
+
+<div class="toast" id="toast">✓ <span id="toast-msg">Done!</span></div>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="screen-login">
+  <div class="login-page">
+    <div class="login-box">
+      <div class="login-logo">Review<span>Phim</span>.vn</div>
+      <div class="login-sub">Nền tảng review & cộng đồng phim Việt</div>
+      <div class="login-tabs">
+        <div class="login-tab active" onclick="setLoginTab('login',this)">Đăng nhập</div>
+        <div class="login-tab" onclick="setLoginTab('register',this)">Đăng ký</div>
+      </div>
+      <div id="login-form-wrap" class="login-form">
+        <div><label class="form-label" style="margin-bottom:4px;display:block">Email</label><input type="email" placeholder="email@example.com"></div>
+        <div><label class="form-label" style="margin-bottom:4px;display:block">Mật khẩu</label><input type="password" placeholder="••••••••"></div>
+        <button class="btn btn-gold" style="width:100%;justify-content:center;padding:9px" onclick="loginNormal()">Đăng nhập</button>
+      </div>
+      <div id="reg-form-wrap" class="login-form" style="display:none">
+        <div><label class="form-label" style="margin-bottom:4px;display:block">Họ tên</label><input type="text" placeholder="Nguyễn Văn A"></div>
+        <div><label class="form-label" style="margin-bottom:4px;display:block">Email</label><input type="email" placeholder="email@example.com"></div>
+        <div><label class="form-label" style="margin-bottom:4px;display:block">Mật khẩu</label><input type="password" placeholder="Tối thiểu 8 ký tự"></div>
+        <button class="btn btn-gold" style="width:100%;justify-content:center;padding:9px" onclick="loginNormal()">Tạo tài khoản</button>
+      </div>
+      <div class="login-or" style="margin:14px 0">Demo nhanh</div>
+      <div class="demo-roles">
+        <div class="demo-role-btn" onclick="enterUserDash()">
+          <div class="drb-icon">👤</div>
+          <div><div class="drb-name">Vào với tư cách User</div><div class="drb-desc">Xem phim, review, watchlist, chat</div></div>
+          <span style="margin-left:auto;font-size:11px;color:var(--gold);font-weight:600">→</span>
+        </div>
+        <div class="demo-role-btn admin-btn" onclick="enterAdminDash()">
+          <div class="drb-icon">🛡️</div>
+          <div><div class="drb-name">Vào với tư cách Admin</div><div class="drb-desc">Toàn quyền quản trị, upload, analytics</div></div>
+          <span style="margin-left:auto;font-size:11px;color:var(--crimson);font-weight:600">→</span>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:14px">
+        <span style="font-size:11.5px;color:var(--fg3);cursor:pointer" onclick="closeLogin()">← Quay về trang chủ</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== USER DASHBOARD SCREEN ===== -->
+<div id="screen-user">
+  <div class="user-dash">
+    <nav class="user-dash-nav">
+      <div class="user-dash-logo" onclick="closeUser()">Review<span>Phim</span>.vn</div>
+      <div class="udnav-links">
+        <div class="ud-link active">Trang cá nhân</div>
+        <div class="ud-link" onclick="showToast('Chuyển sang Trang chủ...');closeUser()">Trang chủ</div>
+        <div class="ud-link" onclick="showToast('Chuyển...');closeUser();showPage('watchlist')">Watchlist</div>
+        <div class="ud-link" onclick="showToast('Chuyển...');closeUser();showPage('community')">Cộng đồng</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-left:auto">
+        <div class="btn btn-ghost btn-sm" onclick="closeUser()">← Về site</div>
+        <div class="btn btn-crimson btn-sm" onclick="closeUser()">Đăng xuất</div>
+      </div>
+    </nav>
+    <div class="ud-wrap">
+      <div class="ud-sidebar">
+        <div class="ud-profile-card">
+          <div class="ud-av">P</div>
+          <div class="ud-name">Paul Nguyễn</div>
+          <div class="ud-email">user@reviewphim.vn</div>
+          <div class="ud-role-badge">👤 USER</div>
+          <div class="ud-stats">
+            <div class="ud-stat"><span class="ud-stat-n">47</span><div class="ud-stat-l">Reviews</div></div>
+            <div class="ud-stat"><span class="ud-stat-n">128</span><div class="ud-stat-l">Watchlist</div></div>
+            <div class="ud-stat"><span class="ud-stat-n">2.4K</span><div class="ud-stat-l">Follow</div></div>
+          </div>
+        </div>
+        <div class="ud-menu">
+          <div class="ud-mi active">🎬 Watchlist</div>
+          <div class="ud-mi" onclick="showToast('Reviews của tôi')">✍️ Reviews của tôi</div>
+          <div class="ud-mi" onclick="showToast('Bình luận của tôi')">💬 Bình luận</div>
+          <div class="ud-mi" onclick="showToast('Mở thông báo')">🔔 Thông báo <span class="badge badge-red" style="margin-left:auto">3</span></div>
+          <div class="ud-mi" onclick="showToast('Mở cài đặt')">⚙️ Cài đặt</div>
+          <div class="ud-mi" onclick="showToast('Mở gói đăng ký')">⭐ Nâng cấp Premium</div>
+        </div>
+        <div class="app-cta-box">
+          <div class="app-cta-title">📱 Tải App</div>
+          <div class="app-cta-sub">Xem offline • Thông báo tập mới</div>
+          <div class="app-btns">
+            <div class="app-btn" onclick="showToast('App Store')"><span>🍎</span> iOS</div>
+            <div class="app-btn" onclick="showToast('Google Play')"><span>🤖</span> Android</div>
+          </div>
+        </div>
+      </div>
+      <div class="ud-main">
+        <div class="admin-panel">
+          <div class="admin-panel-title">▶ Đang xem dở</div>
+          <div class="wl-grid">
+            <div class="wl-card" onclick="closeUser();showPage('detail')"><div class="wl-poster">🌧️<div class="wl-bar"><div class="wl-prog"><div class="wl-prog-fill" style="width:67%"></div></div><span class="wl-prog-txt">16/24</span></div></div><div class="wl-info"><div class="wl-title">Hôm Nay Trời Đổ Mưa</div><div class="wl-ep">Tập 16/24 · Mới nhất</div></div></div>
+            <div class="wl-card" onclick="closeUser();showPage('detail')"><div class="wl-poster">🏯<div class="wl-bar"><div class="wl-prog"><div class="wl-prog-fill" style="width:88%"></div></div><span class="wl-prog-txt">35/40</span></div></div><div class="wl-info"><div class="wl-title">Thượng Công Chúa</div><div class="wl-ep">Tập 35/40 · Còn 5 tập</div></div></div>
+            <div class="wl-card" onclick="closeUser();showPage('detail')"><div class="wl-poster">👹<div class="wl-bar"><div class="wl-prog"><div class="wl-prog-fill" style="width:60%"></div></div><span class="wl-prog-txt">14/24</span></div></div><div class="wl-info"><div class="wl-title">Jujutsu Kaisen S3</div><div class="wl-ep">Tập 14/24</div></div></div>
+          </div>
+        </div>
+        <div class="admin-panel">
+          <div class="admin-panel-title">✍️ Reviews gần đây</div>
+          <div class="rv-item">
+            <div class="rv-item-hd">
+              <div style="font-size:22px">🦖</div>
+              <div class="rv-item-name" style="font-size:12.5px;font-weight:600">Godzilla Trừ Không</div>
+              <div class="rv-item-score" style="font-size:13px">9.5 ★</div>
+            </div>
+            <div class="rv-body-text" style="font-size:12px">Siêu phẩm điện ảnh không thể bỏ lỡ. Recommend IMAX tuyệt đối!</div>
+            <div class="rv-actions">
+              <span class="rv-act liked">❤️ 234 thích</span>
+              <span class="rv-act" onclick="showToast('Mở comments')">💬 48 bình luận</span>
+            </div>
+          </div>
+        </div>
+        <div class="admin-panel">
+          <div class="admin-panel-title">⚙️ Cài đặt tài khoản</div>
+          <div style="display:flex;flex-direction:column;gap:11px">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)">
+              <div><div style="font-size:13px">Thông báo tập mới</div><div style="font-size:11px;color:var(--fg3)">Phim trong watchlist</div></div>
+              <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)">
+              <div><div style="font-size:13px">Email digest hàng tuần</div><div style="font-size:11px;color:var(--fg3)">Phim mới + review nổi bật</div></div>
+              <div class="toggle" onclick="this.classList.toggle('on')"></div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0">
+              <div><div style="font-size:13px">Nâng cấp lên Reviewer</div><div style="font-size:11px;color:var(--fg3)">Badge xác minh + hoa hồng affiliate</div></div>
+              <button class="btn btn-outline btn-sm" onclick="showToast('Mở trang đăng ký Reviewer!')">Đăng ký</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ADMIN DASHBOARD SCREEN ===== -->
+<div id="screen-admin">
+  <div class="admin-dash">
+    <nav class="admin-nav">
+      <div class="admin-logo" onclick="closeAdmin()">Review<span>Phim</span>.vn</div>
+      <div style="font-size:10px;padding:2px 7px;border-radius:3px;background:rgba(197,48,48,.2);color:var(--crimson2);font-weight:700;letter-spacing:.05em;flex-shrink:0">ADMIN</div>
+      <div class="admin-nav-links">
+        <div class="anl active">Dashboard</div>
+        <div class="anl" onclick="showToast('Mở Nội dung')">Nội dung</div>
+        <div class="anl" onclick="showToast('Mở Người dùng')">Người dùng</div>
+        <div class="anl" onclick="showToast('Mở Phim')">Thư viện phim</div>
+        <div class="anl" onclick="showToast('Mở Upload')">Upload video</div>
+        <div class="anl" onclick="showToast('Mở Hợp tác')">Hợp tác</div>
+        <div class="anl" onclick="showToast('Mở Analytics')">Analytics</div>
+        <div class="anl" onclick="showToast('Mở Cài đặt')">Cài đặt</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-left:auto;flex-shrink:0">
+        <div class="btn btn-sm" style="background:rgba(255,255,255,.1);color:rgba(245,240,232,.8);font-size:12px" onclick="closeAdmin()">← Về site</div>
+        <div class="btn btn-crimson btn-sm" onclick="closeAdmin()">Đăng xuất</div>
+      </div>
+    </nav>
+    <div class="admin-wrap">
+      <div class="admin-topbar">
+        <div class="admin-topbar-title">Dashboard <span>Admin</span></div>
+        <div style="display:flex;gap:7px">
+          <button class="btn btn-ghost btn-sm" onclick="showToast('Xuất báo cáo PDF...')">📊 Xuất báo cáo</button>
+          <button class="btn btn-crimson btn-sm" onclick="showToast('Mở upload video...')">📤 Upload phim mới</button>
+        </div>
+      </div>
+      <div class="admin-kpi-row">
+        <div class="kpi-card"><div class="kpi-label">Người dùng</div><div class="kpi-num">512<span class="unit">K</span></div><div class="kpi-change kpi-up">▲ +8.3% tuần này</div></div>
+        <div class="kpi-card"><div class="kpi-label">Lượt xem</div><div class="kpi-num">1.4<span class="unit">M</span></div><div class="kpi-change kpi-up">▲ +12% tuần này</div></div>
+        <div class="kpi-card"><div class="kpi-label">Review mới</div><div class="kpi-num">847</div><div class="kpi-change kpi-up">▲ +34 hôm nay</div></div>
+        <div class="kpi-card"><div class="kpi-label">Doanh thu affiliate</div><div class="kpi-num">28<span class="unit">M ₫</span></div><div class="kpi-change kpi-up">▲ +18% tháng này</div></div>
+        <div class="kpi-card"><div class="kpi-label">Chờ duyệt</div><div class="kpi-num">23</div><div class="kpi-change kpi-down">▼ 23 cần xử lý</div></div>
+      </div>
+      <div class="admin-quick-actions">
+        <button class="btn btn-gold btn-sm" onclick="showToast('Mở upload video...')">📤 Upload video mới</button>
+        <button class="btn btn-ghost btn-sm" onclick="showToast('Mở duyệt review...')">✅ Duyệt review (23)</button>
+        <button class="btn btn-ghost btn-sm" onclick="showToast('Mở quản lý phim...')">🎬 Thêm phim mới</button>
+        <button class="btn btn-ghost btn-sm" onclick="showToast('Mở tin tức...')">📰 Đăng bài tin tức</button>
+        <button class="btn btn-ghost btn-sm" onclick="showToast('Mở quản lý banner...')">🖼️ Quản lý banner ads</button>
+        <button class="btn btn-ghost btn-sm" onclick="showToast('Mở hợp tác...')">🤝 Yêu cầu hợp tác (7)</button>
+      </div>
+      <div class="admin-grid">
+        <div>
+          <div class="admin-panel">
+            <div class="admin-panel-title">Review chờ duyệt <span class="badge badge-red">23</span></div>
+            <table class="admin-table">
+              <thead><tr><th>Người dùng</th><th>Phim</th><th>Điểm</th><th>Thời gian</th><th>Trạng thái</th><th>Hành động</th></tr></thead>
+              <tbody>
+                <tr><td>Minh Hoàng</td><td>Godzilla Trừ Không</td><td><span style="color:var(--gold);font-weight:700">9.5★</span></td><td>2 giờ trước</td><td><span class="status-pill sp-pending">Chờ duyệt</span></td><td><button class="btn btn-sm btn-gold" style="padding:3px 9px;font-size:11px" onclick="showToast('Đã duyệt!')">Duyệt</button></td></tr>
+                <tr><td>Ngọc Anh</td><td>Thượng Công Chúa T35</td><td><span style="color:var(--gold);font-weight:700">8.5★</span></td><td>4 giờ trước</td><td><span class="status-pill sp-pending">Chờ duyệt</span></td><td><button class="btn btn-sm btn-gold" style="padding:3px 9px;font-size:11px" onclick="showToast('Đã duyệt!')">Duyệt</button></td></tr>
+                <tr><td>Trung Kiên</td><td>JJK Season 3</td><td><span style="color:var(--gold);font-weight:700">9.2★</span></td><td>6 giờ trước</td><td><span class="status-pill sp-active">Đã duyệt</span></td><td><button class="btn btn-sm btn-ghost" style="padding:3px 9px;font-size:11px" onclick="showToast('Đã ẩn!')">Ẩn</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="admin-panel">
+            <div class="admin-panel-title">Người dùng mới đăng ký <span style="font-size:11px;font-weight:400;color:var(--fg3)">hôm nay: 142</span></div>
+            <table class="admin-table">
+              <thead><tr><th>Email</th><th>Vai trò</th><th>Đăng ký</th><th>Trạng thái</th><th></th></tr></thead>
+              <tbody>
+                <tr><td>user01@gmail.com</td><td>User</td><td>10 phút trước</td><td><span class="status-pill sp-active">Hoạt động</span></td><td><button class="btn btn-sm btn-ghost" style="padding:3px 7px;font-size:10px" onclick="showToast('Mở chi tiết user...')">Xem</button></td></tr>
+                <tr><td>reviewer@email.vn</td><td><span style="color:var(--gold);font-weight:600">Reviewer</span></td><td>45 phút trước</td><td><span class="status-pill sp-pending">Chờ duyệt</span></td><td><button class="btn btn-sm btn-gold" style="padding:3px 7px;font-size:10px" onclick="showToast('Đã xác nhận Reviewer!')">Duyệt</button></td></tr>
+                <tr><td>partner@cgv.vn</td><td><span style="color:var(--blue);font-weight:600">Partner</span></td><td>2 giờ trước</td><td><span class="status-pill sp-pending">Chờ duyệt</span></td><td><button class="btn btn-sm btn-gold" style="padding:3px 7px;font-size:10px" onclick="showToast('Đã duyệt Partner CGV!')">Duyệt</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="admin-panel">
+            <div class="admin-panel-title">📤 Upload video / phim mới</div>
+            <div class="upload-zone" onclick="showToast('Chọn file video...')">
+              <div class="upload-zone-icon">🎬</div>
+              <div class="upload-zone-text">Kéo thả file video vào đây</div>
+              <div class="upload-zone-sub">MP4, MKV, AVI — tối đa 20GB / file</div>
+              <button class="btn btn-ghost btn-sm" style="margin-top:12px" onclick="showToast('Chọn file...')">Chọn file từ máy tính</button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="admin-panel">
+            <div class="admin-panel-title">Quản lý nhanh</div>
+            <div class="admin-actions">
+              <div class="admin-action-item" onclick="showToast('Mở quản lý banner...')"><div class="aai-icon">🖼️</div><div><span class="aai-label">Banner & Quảng cáo</span><div class="aai-desc">Quản lý vị trí + nội dung ads</div></div></div>
+              <div class="admin-action-item" onclick="showToast('Mở tin tức...')"><div class="aai-icon">📰</div><div><span class="aai-label">Đăng bài tin tức</span><div class="aai-desc">Tiêu điểm phim, phim ra mắt</div></div></div>
+              <div class="admin-action-item" onclick="showToast('Mở lịch chiếu...')"><div class="aai-icon">🎟️</div><div><span class="aai-label">Lịch chiếu & rạp</span><div class="aai-desc">Sync API rạp, affiliate links</div></div></div>
+              <div class="admin-action-item" onclick="showToast('Mở hợp tác...')"><div class="aai-icon">🤝</div><div><span class="aai-label">Yêu cầu hợp tác</span><div class="aai-desc">7 yêu cầu chờ xử lý</div></div></div>
+              <div class="admin-action-item" onclick="showToast('Mở subscription...')"><div class="aai-icon">⭐</div><div><span class="aai-label">Subscription users</span><div class="aai-desc">1,247 tài khoản trả phí</div></div></div>
+              <div class="admin-action-item" onclick="showToast('Mở SEO tools...')"><div class="aai-icon">🔍</div><div><span class="aai-label">SEO & Analytics</span><div class="aai-desc">Keyword tracking, traffic</div></div></div>
+            </div>
+          </div>
+          <div class="admin-panel" style="background:linear-gradient(135deg,rgba(42,138,69,.06),rgba(21,101,192,.04));border-color:rgba(42,138,69,.2)">
+            <div class="admin-panel-title" style="color:var(--green)">💰 Doanh thu tháng 11</div>
+            <div style="display:flex;flex-direction:column;gap:7px">
+              <div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border)"><span>Affiliate vé rạp</span><strong>12.4M ₫</strong></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border)"><span>Affiliate streaming</span><strong>8.2M ₫</strong></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border)"><span>Banner ads</span><strong>5.1M ₫</strong></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border)"><span>Subscription</span><strong>2.3M ₫</strong></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:7px 0;font-weight:800"><span>Tổng cộng</span><span style="color:var(--green)">28.0M ₫</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="logo" onclick="showPage('home')">Review<span class="logo-dot">Phim</span><span class="logo-vn">.vn</span></div>
+    <div class="nav-links">
+      <span class="nav-link active" id="nav-home" onclick="showPage('home')">Trang chủ</span>
+      <span class="nav-link" id="nav-news" onclick="showPage('news')">Tin tức</span>
+      <span class="nav-link" id="nav-review" onclick="showPage('review')">Review</span>
+      <span class="nav-link" id="nav-schedule" onclick="showPage('schedule')">Lịch chiếu</span>
+      <span class="nav-link" id="nav-community" onclick="showPage('community')">Cộng đồng</span>
+      <span class="nav-link" id="nav-watchlist" onclick="showPage('watchlist')">Watchlist</span>
+      <span class="nav-link" id="nav-party" onclick="showPage('party')">Watch Party 🎬</span>
+      <span class="nav-link" id="nav-partner" onclick="showPage('partner')">Hợp tác</span>
+    </div>
+    <div class="nav-right">
+      <div class="search-wrap">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" placeholder="Tìm phim, diễn viên...">
+      </div>
+      <button class="btn btn-gold btn-sm" onclick="openLogin()">Đăng nhập</button>
+      <div class="nav-av" onclick="openLogin()" title="Tài khoản">P<div class="nav-dot"></div></div>
+    </div>
+  </div>
+</nav>
+
+<!-- ============ HOME ============ -->
+<div id="page-home" class="page active">
+  <div class="wrap">
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-bg"><div class="hero-emoji-bg">🦖</div></div>
+      <div class="hero-ov1"></div><div class="hero-ov2"></div>
+      <div class="hero-thumbs">
+        <div class="hero-thumb">🏯</div><div class="hero-thumb">👹</div><div class="hero-thumb">🌊</div>
+      </div>
+      <div class="hero-content">
+        <div class="hero-eyebrow">Phim nổi bật tuần này</div>
+        <div class="hero-title">Godzilla Trừ Không</div>
+        <div class="hero-ori">Godzilla Minus Zero (2026) · Nhật Bản</div>
+        <div class="hero-tags">
+          <span class="hero-tag">Kinh dị</span><span class="hero-tag">Sci-Fi</span><span class="hero-tag">Hành động</span><span class="hero-tag">CGV · IMAX</span>
+        </div>
+        <div class="hero-score-row">
+          <span class="hero-imdb">IMDb 9.5</span>
+          <span class="hero-score">9.5</span><span class="hero-score-sub">/ 10 · 2.1k đánh giá</span>
+          <span style="font-size:11px;color:rgba(245,240,232,.45)">👁 1.24M lượt xem</span>
+        </div>
+        <div class="hero-desc">Nhật Bản đã tạo ra một trong những bộ phim Godzilla hay nhất từ trước đến nay. Cảm xúc được đẩy lên đỉnh điểm qua từng khung hình đẳng cấp.</div>
+        <div class="hero-btns">
+          <button class="btn btn-play" onclick="showPage('detail')">▶ Xem Phim</button>
+          <button class="btn btn-trailer" onclick="showToast('Mở trailer...')">▷ Trailer</button>
+          <button class="btn btn-ghost btn-sm" onclick="showToast('Đã thêm vào Watchlist!')">+ Watchlist</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="home-grid">
+      <div><!-- LEFT -->
+        <!-- TIN TỨC snippet on homepage -->
+        <div class="sec-gap">
+          <div class="sec-hd">
+            <div class="sec-title">📰 Tin tức điện ảnh <span class="sec-label">Mới nhất</span></div>
+            <span class="see-all" onclick="showPage('news')">Xem tất cả →</span>
+          </div>
+          <div class="news-grid">
+            <div class="news-card" onclick="showPage('news')">
+              <div class="news-cover" style="background:linear-gradient(135deg,#1a0a2e,#2e1a0a)"><span>🦖</span><span class="news-cat" style="background:var(--crimson)">Phim rạp</span></div>
+              <div class="news-body">
+                <div class="news-title">Godzilla Trừ Không phá kỷ lục phòng vé Việt Nam tuần đầu</div>
+                <div class="news-meta"><span>13/11/2026</span><span>·</span><span>5 phút đọc</span></div>
+              </div>
+            </div>
+            <div class="news-card" onclick="showPage('news')">
+              <div class="news-cover" style="background:linear-gradient(135deg,#0a2e1a,#1a0a2e)"><span>📅</span><span class="news-cat" style="background:var(--blue)">Ra mắt</span></div>
+              <div class="news-body">
+                <div class="news-title">Top 10 phim sắp ra mắt tháng 12/2026 không thể bỏ qua</div>
+                <div class="news-meta"><span>12/11/2026</span><span>·</span><span>8 phút đọc</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TRENDING FILMS -->
+        <div class="sec-gap">
+          <div class="sec-hd">
+            <div class="sec-title">🔥 Đang hot <span class="sec-label">Tuần này</span></div>
+            <span class="see-all" onclick="showPage('review')">Xem tất cả →</span>
+          </div>
+          <div class="film-row">
+            <div class="film-card" onclick="showPage('detail')"><div class="poster"><div class="poster-emoji">🦖</div><span class="poster-badge hot">TOP 1</span><div class="poster-score">⭐9.5</div></div><div class="card-title">Godzilla Trừ Không</div><div class="card-meta"><span>2026</span><span>·</span><span>Kinh dị</span></div></div>
+            <div class="film-card" onclick="showPage('detail')"><div class="poster"><div class="poster-emoji">🏜️</div><div class="poster-score">⭐9.2</div></div><div class="card-title">Dune: Phần Hai</div><div class="card-meta"><span>2024</span><span>·</span><span>Sci-Fi</span></div></div>
+            <div class="film-card" onclick="showPage('detail')"><div class="poster"><div class="poster-emoji">🏯</div><span class="poster-badge new">MỚI</span><div class="poster-score">⭐9.1</div></div><div class="card-title">Hôm Nay Trời Đổ Mưa</div><div class="card-meta"><span>2026</span><span>·</span><span class="card-ep">16/24</span></div></div>
+            <div class="film-card" onclick="showPage('detail')"><div class="poster"><div class="poster-emoji">🧟</div><div class="poster-score">⭐8.8</div></div><div class="card-title">Kế Hoạch Của Quỷ Dữ S2</div><div class="card-meta"><span>2026</span><span>·</span><span class="card-ep">5/14</span></div></div>
+            <div class="film-card" onclick="showPage('detail')"><div class="poster"><div class="poster-emoji">💔</div><div class="poster-score">⭐9.1</div></div><div class="card-title">Crash Landing on You</div><div class="card-meta"><span>2019</span><span>·</span><span>Hàn</span></div></div>
+            <div class="film-card" onclick="showPage('detail')"><div class="poster"><div class="poster-emoji">👹</div><span class="poster-badge">Anime</span><div class="poster-score">⭐9.4</div></div><div class="card-title">Jujutsu Kaisen 0</div><div class="card-meta"><span>2021</span><span>·</span><span>Anime</span></div></div>
+          </div>
+        </div>
+
+        <!-- FEATURED REVIEWS -->
+        <div class="sec-gap">
+          <div class="sec-hd">
+            <div class="sec-title">✍️ Review nổi bật</div>
+            <span class="see-all" onclick="showPage('review')">Xem tất cả →</span>
+          </div>
+          <div class="review-grid">
+            <div class="rv-card" onclick="showPage('detail')">
+              <div class="rv-cover" style="background:linear-gradient(135deg,#2a1a3e,#3e2a1a)"><span>🦖</span><div class="grad"></div></div>
+              <div class="rv-body"><div class="rv-label">Review Phim Rạp · IMAX</div><div class="rv-title">Godzilla Trừ Không — Siêu phẩm thế hệ mới</div><div class="rv-excerpt">Nhật Bản tạo ra một trong những bộ phim Godzilla hay nhất từ trước đến nay.</div><div class="rv-footer"><div class="reviewer"><div class="reviewer-av">MH</div>Minh Hoàng</div><div class="stars">★★★★★ 9.5</div></div></div>
+            </div>
+            <div class="rv-card" onclick="showPage('detail')">
+              <div class="rv-cover" style="background:linear-gradient(135deg,#1a3e2a,#3e1a2a)"><span>🏯</span><div class="grad"></div></div>
+              <div class="rv-body"><div class="rv-label">Review Phim Bộ Hàn</div><div class="rv-title">Thượng Công Chúa — Cổ trang đỉnh nhất 2026</div><div class="rv-excerpt">Song Kang và bối cảnh Joseon xa hoa, diễn xuất sâu sắc, từng tình tiết đều được đầu tư kỹ.</div><div class="rv-footer"><div class="reviewer"><div class="reviewer-av" style="background:linear-gradient(135deg,#2A8A45,#1565C0)">NA</div>Ngọc Anh</div><div class="stars">★★★★ 8.3</div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PARTNER SNIPPET on homepage -->
+        <div class="sec-gap">
+          <div class="sec-hd"><div class="sec-title">🤝 Đối tác & Hợp tác</div></div>
+          <div class="partner-snippet" onclick="showPage('partner')">
+            <div class="partner-snippet-logos">
+              <div class="ps-logo" style="background:#E50914;color:#fff">CGV</div>
+              <div class="ps-logo" style="background:#0A4FF5;color:#fff">V</div>
+              <div class="ps-logo" style="background:#E50914;color:#fff">N</div>
+              <div class="ps-logo" style="background:#ED1C24;color:#fff;font-size:9px">Lotte</div>
+              <div class="ps-logo">🏢</div>
+            </div>
+            <div class="partner-snippet-info">
+              <div class="partner-snippet-title">ReviewPhim.vn — 500K+ người dùng · Mở rộng hợp tác 2026–2027</div>
+              <div class="partner-snippet-sub">Rạp chiếu · Nền tảng streaming · Brand · Creator · Trường ĐH · Nhà phát hành phim</div>
+            </div>
+            <span class="see-all">Tìm hiểu →</span>
+          </div>
+        </div>
+      </div><!-- end LEFT -->
+
+      <!-- SIDEBAR -->
+      <div class="sidebar">
+        <div class="sb-box">
+          <div class="sb-title">🔥 Hot Trong Tuần</div>
+          <div class="rank-item" onclick="showPage('detail')"><div class="rank-num r1">1</div><div class="rank-thumb">🌧️</div><div class="rank-info"><div class="rank-name">Hôm Nay Trời Đổ Mưa</div><div class="rank-sub">Hàn · Tập 16</div></div><div class="rank-right"><strong>889K</strong><span>views</span></div></div>
+          <div class="rank-item" onclick="showPage('detail')"><div class="rank-num r1">2</div><div class="rank-thumb">🌧️</div><div class="rank-info"><div class="rank-name">Ngọc Điệm Thu</div><div class="rank-sub">Hàn · Hoàn tất 40/40</div></div><div class="rank-right"><strong>378K</strong><span>views</span></div></div>
+          <div class="rank-item" onclick="showPage('detail')"><div class="rank-num r2">3</div><div class="rank-thumb">🐓</div><div class="rank-info"><div class="rank-name">Gả Kim Thoa</div><div class="rank-sub">Trung · Tập 20/24</div></div><div class="rank-right"><strong>284K</strong><span>views</span></div></div>
+          <div class="rank-item" onclick="showPage('detail')"><div class="rank-num r3">4</div><div class="rank-thumb">🏥</div><div class="rank-info"><div class="rank-name">Bác Sĩ X</div><div class="rank-sub">Hàn · Tập 8</div></div><div class="rank-right"><strong>403K</strong><span>views</span></div></div>
+          <div class="rank-item" onclick="showPage('detail')"><div class="rank-num">5</div><div class="rank-thumb">💔</div><div class="rank-info"><div class="rank-name">100 Ngày Lừa Dối</div><div class="rank-sub">Hàn · Tập 10</div></div><div class="rank-right"><strong>390K</strong><span>views</span></div></div>
+          <div class="rank-item" onclick="showPage('detail')"><div class="rank-num">6</div><div class="rank-thumb">🏯</div><div class="rank-info"><div class="rank-name">Thượng Công Chúa</div><div class="rank-sub">Trung · Tập 35</div></div><div class="rank-right"><strong>156K</strong><span>views</span></div></div>
+        </div>
+        <div class="sb-box">
+          <div class="sb-title">⭐ Đánh Giá Cao</div>
+          <div class="rank-item" onclick="showPage('detail')"><div class="rank-num r1">1</div><div class="rank-thumb">🌧️</div><div class="rank-info"><div class="rank-name">Hôm Nay Trời Đổ Mưa</div><div class="rank-sub">Tập 16 · Sunshine Rain</div></div><div class="rank-right"><strong>9.2⭐</strong><span>898K</span></div></div>
+          <div class="rank-item" onclick="showPage('detail')"><div class="rank-num r2">2</div><div class="rank-thumb">🌸</div><div class="rank-info"><div class="rank-name">Gặp Ánh Trăng</div><div class="rank-sub">Tập 18/24</div></div><div class="rank-right"><strong>9.1⭐</strong><span>268K</span></div></div>
+          <div class="rank-item" onclick="showPage('detail')"><div class="rank-num r3">3</div><div class="rank-thumb">💔</div><div class="rank-info"><div class="rank-name">100 Ngày Lừa Dối</div><div class="rank-sub">Tập 10</div></div><div class="rank-right"><strong>8.3⭐</strong><span>1.2M</span></div></div>
+          <div class="rank-item" onclick="showPage('detail')"><div class="rank-num">4</div><div class="rank-thumb">🌟</div><div class="rank-info"><div class="rank-name">Ngọc Điệm Thu</div><div class="rank-sub">Hoàn tất 40 tập</div></div><div class="rank-right"><strong>8.4⭐</strong><span>378K</span></div></div>
+        </div>
+        <div class="sb-box" style="padding:0">
+          <div style="padding:12px 13px 0">
+            <div style="font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--fg3);margin-bottom:8px">📰 Tin tức nổi bật</div>
+          </div>
+          <div style="padding:0 13px 12px">
+            <div class="news-list-item" onclick="showPage('news')">
+              <div class="news-list-thumb">🦖</div>
+              <div><div class="news-list-title">Godzilla phá kỷ lục phòng vé VN</div><div class="news-list-sub">13/11/2026 · Phim rạp</div></div>
+            </div>
+            <div class="news-list-item" onclick="showPage('news')">
+              <div class="news-list-thumb">📅</div>
+              <div><div class="news-list-title">Top phim tháng 12/2026</div><div class="news-list-sub">12/11/2026 · Ra mắt</div></div>
+            </div>
+            <div class="news-list-item" onclick="showPage('news')">
+              <div class="news-list-thumb">🎬</div>
+              <div><div class="news-list-title">Avatar 3 — Teaser đầu tiên</div><div class="news-list-sub">11/11/2026 · Hollywood</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="app-cta-box">
+          <div class="app-cta-title">📱 Tải ReviewPhim.vn</div>
+          <div class="app-cta-sub">Offline · Thông báo tập mới · Watch Party</div>
+          <div class="app-btns">
+            <div class="app-btn" onclick="showToast('Coming soon — App Store!')"><span>🍎</span> iOS</div>
+            <div class="app-btn" onclick="showToast('Coming soon — Google Play!')"><span>🤖</span> Android</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ NEWS PAGE ============ -->
+<div id="page-news" class="page">
+  <div class="wrap">
+    <div class="sec-hd" style="margin-bottom:20px">
+      <div class="sec-title">📰 Tin tức điện ảnh <span class="sec-label">1,842 bài</span></div>
+      <button class="btn btn-gold btn-sm" onclick="showToast('Admin: Đăng bài mới...')">+ Đăng bài</button>
+    </div>
+    <div class="news-tabs">
+      <span class="n-tab active" onclick="setNewsTab(this)">Tất cả</span>
+      <span class="n-tab" onclick="setNewsTab(this)">🎬 Phim rạp</span>
+      <span class="n-tab" onclick="setNewsTab(this)">📅 Phim sắp ra mắt</span>
+      <span class="n-tab" onclick="setNewsTab(this)">⭐ Giải thưởng</span>
+      <span class="n-tab" onclick="setNewsTab(this)">🇰🇷 Hàn Quốc</span>
+      <span class="n-tab" onclick="setNewsTab(this)">🇯🇵 Anime / Nhật</span>
+      <span class="n-tab" onclick="setNewsTab(this)">🌍 Hollywood</span>
+      <span class="n-tab" onclick="setNewsTab(this)">🇻🇳 Phim Việt</span>
+    </div>
+
+    <!-- FEATURED -->
+    <div class="news-featured sec-gap">
+      <div class="nf-main">
+        <div class="nf-cover-main"><span>🦖</span><span class="nf-cat" style="background:var(--crimson);color:#fff">Phim rạp</span></div>
+        <div class="nf-body">
+          <div class="nf-title">Godzilla Trừ Không phá kỷ lục phòng vé Việt Nam 5 năm qua ngay tuần đầu công chiếu</div>
+          <div class="nf-excerpt">Bom tấn điện ảnh Nhật Bản đạt doanh thu 45 tỷ đồng chỉ trong 3 ngày đầu tại Việt Nam, vượt qua mọi phim châu Á trước đó. IMAX và 4DX cháy vé toàn bộ các suất cuối tuần...</div>
+          <div class="nf-meta"><span>13/11/2026</span><span>·</span><span>Minh Hoàng</span><span>·</span><span>7 phút đọc</span><span>·</span><span>👁 48,420 lượt xem</span></div>
+        </div>
+      </div>
+      <div class="nf-side">
+        <div class="nf-side-card">
+          <div class="nf-side-cover" style="background:linear-gradient(135deg,#0a1a2e,#1a0a2e)"><span>📅</span></div>
+          <div class="nf-side-body"><div class="nf-side-title">Top 10 phim sắp ra mắt tháng 12/2026 không thể bỏ qua</div><div class="nf-side-meta"><span>12/11/2026</span> · <span>8 phút</span></div></div>
+        </div>
+        <div class="nf-side-card">
+          <div class="nf-side-cover" style="background:linear-gradient(135deg,#2a0a0a,#0a2a1a)"><span>🏆</span></div>
+          <div class="nf-side-body"><div class="nf-side-title">Danh sách đề cử Oscar 2027: Godzilla Minus Zero dẫn đầu</div><div class="nf-side-meta"><span>11/11/2026</span> · <span>5 phút</span></div></div>
+        </div>
+        <div class="nf-side-card">
+          <div class="nf-side-cover" style="background:linear-gradient(135deg,#0a2a0a,#2a1a0a)"><span>🎬</span></div>
+          <div class="nf-side-body"><div class="nf-side-title">Avatar 3 – Teaser đầu tiên hé lộ: Pandora ngập trong lửa</div><div class="nf-side-meta"><span>11/11/2026</span> · <span>4 phút</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHIM SẮP RA MẮT -->
+    <div class="sec-gap">
+      <div class="sec-hd">
+        <div class="sec-title">📅 Phim sắp ra mắt <span class="sec-label">Tháng 12</span></div>
+      </div>
+      <div class="news-releases release-list">
+        <div class="release-item"><div class="release-date"><span class="release-day">06</span><span class="release-month">Tháng 12</span></div><div class="release-info"><div class="release-name">Avatar: Fire and Ash</div><div class="release-meta"><span class="badge badge-blue">CGV · IMAX · 4DX</span><span>James Cameron · Disney</span></div></div><div class="release-countdown">⏳ 23 ngày nữa</div></div>
+        <div class="release-item"><div class="release-date" style="background:var(--gold)"><span class="release-day">13</span><span class="release-month">Tháng 12</span></div><div class="release-info"><div class="release-name">Moana 2 (Phiên bản mở rộng)</div><div class="release-meta"><span class="badge badge-gold">CGV · Lotte · BHD</span><span>Disney Animation</span></div></div><div class="release-countdown">⏳ 30 ngày nữa</div></div>
+        <div class="release-item"><div class="release-date" style="background:var(--blue)"><span class="release-day">20</span><span class="release-month">Tháng 12</span></div><div class="release-info"><div class="release-name">Jurassic World: Rebirth</div><div class="release-meta"><span class="badge badge-blue">Toàn quốc</span><span>Universal Pictures · Steven Spielberg</span></div></div><div class="release-countdown">⏳ 37 ngày nữa</div></div>
+        <div class="release-item"><div class="release-date" style="background:var(--green)"><span class="release-day">25</span><span class="release-month">Tháng 12</span></div><div class="release-info"><div class="release-name">Mufasa: The Lion King</div><div class="release-meta"><span class="badge badge-green">CGV · BHD</span><span>Disney · Giáng Sinh</span></div></div><div class="release-countdown">⏳ 42 ngày nữa</div></div>
+      </div>
+    </div>
+
+    <!-- MORE NEWS -->
+    <div class="sec-gap">
+      <div class="sec-hd"><div class="sec-title">🌟 Tin tức mới nhất</div></div>
+      <div class="news-full-grid">
+        <div class="news-full-card"><div class="news-full-cover" style="background:linear-gradient(135deg,#1a1a2e,#2e1a1a)"><span>🏆</span><span class="nf-cat" style="background:#9333EA;color:#fff;position:absolute;top:8px;left:8px;font-size:9px">Giải thưởng</span></div><div class="news-full-body"><div class="news-full-title">Danh sách đề cử Oscar 2027 chính thức công bố</div><div class="news-full-excerpt">Godzilla Minus Zero dẫn đầu với 7 đề cử, trong đó có Phim xuất sắc nhất.</div><div class="news-full-meta"><span>11/11/2026</span><span>·</span><span>5 phút</span></div></div></div>
+        <div class="news-full-card"><div class="news-full-cover" style="background:linear-gradient(135deg,#2e0a0a,#0a2e1a)"><span>🇰🇷</span><span class="nf-cat" style="background:var(--blue);color:#fff;position:absolute;top:8px;left:8px;font-size:9px">Hàn Quốc</span></div><div class="news-full-body"><div class="news-full-title">Drama Hàn 2026: Những bộ phim bộ được yêu thích nhất</div><div class="news-full-excerpt">Danh sách tổng hợp từ cộng đồng ReviewPhim.vn với hơn 50,000 votes.</div><div class="news-full-meta"><span>10/11/2026</span><span>·</span><span>6 phút</span></div></div></div>
+        <div class="news-full-card"><div class="news-full-cover" style="background:linear-gradient(135deg,#0a0a1e,#1e0a0a)"><span>🎌</span><span class="nf-cat" style="background:#2A8A45;color:#fff;position:absolute;top:8px;left:8px;font-size:9px">Anime</span></div><div class="news-full-body"><div class="news-full-title">Mùa anime Winter 2027: Danh sách những bộ được chờ đợi nhất</div><div class="news-full-excerpt">Từ JJK đến Bleach, mùa anime đông 2027 hứa hẹn nhiều bất ngờ.</div><div class="news-full-meta"><span>09/11/2026</span><span>·</span><span>7 phút</span></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ REVIEW PAGE ============ -->
+<div id="page-review" class="page">
+  <div class="wrap">
+    <div class="sec-hd" style="margin-bottom:16px"><div class="sec-title">✍️ Tất cả Review <span class="sec-label">1,247 bài</span></div><select style="font-size:12px;padding:5px 9px;width:auto"><option>Mới nhất</option><option>Điểm cao nhất</option><option>Nhiều lượt xem</option></select></div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:20px">
+      <span class="btn btn-gold btn-sm" id="fc-all" onclick="filterFilms('all',this)">Tất cả</span>
+      <span class="btn btn-ghost btn-sm" id="fc-rap" onclick="filterFilms('rap',this)">Phim Rạp</span>
+      <span class="btn btn-ghost btn-sm" id="fc-han" onclick="filterFilms('han',this)">Hàn</span>
+      <span class="btn btn-ghost btn-sm" id="fc-anime" onclick="filterFilms('anime',this)">Anime</span>
+      <span class="btn btn-ghost btn-sm" id="fc-trung" onclick="filterFilms('trung',this)">Trung</span>
+    </div>
+    <div class="sec-gap"><div class="sec-hd"><div class="sec-title">🎬 Phim Rạp</div></div><div class="film-row" id="fr-rap"><div class="film-card" onclick="showPage('detail')"><div class="poster"><div class="poster-emoji">🦖</div><span class="poster-badge hot">TOP</span><div class="poster-score">⭐9.5</div></div><div class="card-title">Godzilla Trừ Không</div><div class="card-meta">2026 · Kinh dị</div></div><div class="film-card" onclick="showPage('detail')"><div class="poster"><div class="poster-emoji">🏜️</div><div class="poster-score">⭐9.2</div></div><div class="card-title">Dune: Phần Hai</div><div class="card-meta">2024 · Sci-Fi</div></div><div class="film-card" onclick="showPage('detail')"><div class="poster"><div class="poster-emoji">🎭</div><div class="poster-score">⭐8.9</div></div><div class="card-title">Oppenheimer</div><div class="card-meta">2023 · Tiểu sử</div></div></div></div>
+    <div class="sec-gap"><div class="sec-hd"><div class="sec-title">🏯 Phim Bộ Hàn</div></div><div class="film-row" id="fr-han"><div class="film-card" onclick="showPage('detail')"><div class="poster"><div class="poster-emoji">🌧️</div><span class="poster-badge hot">TOP</span><div class="poster-score">⭐9.2</div></div><div class="card-title">Hôm Nay Trời Đổ Mưa</div><div class="card-meta">2026 · <span class="card-ep">16/24</span></div></div><div class="film-card" onclick="showPage('detail')"><div class="poster"><div class="poster-emoji">💔</div><div class="poster-score">⭐8.3</div></div><div class="card-title">100 Ngày Lừa Dối</div><div class="card-meta">2026 · <span class="card-ep">10</span></div></div><div class="film-card" onclick="showPage('detail')"><div class="poster"><div class="poster-emoji">🏥</div><span class="poster-badge new">MỚI</span><div class="poster-score">⭐8.5</div></div><div class="card-title">Bác Sĩ X</div><div class="card-meta">2026 · <span class="card-ep">8</span></div></div></div></div>
+    <div class="sec-gap"><div class="sec-hd"><div class="sec-title">⛩️ Anime</div></div><div class="film-row" id="fr-anime"><div class="film-card" onclick="showPage('detail')"><div class="poster"><div class="poster-emoji">👹</div><span class="poster-badge">⭐</span><div class="poster-score">⭐9.4</div></div><div class="card-title">Jujutsu Kaisen 0</div><div class="card-meta">2021 · Hành động</div></div><div class="film-card" onclick="showPage('detail')"><div class="poster"><div class="poster-emoji">🗡️</div><div class="poster-score">⭐9.3</div></div><div class="card-title">Attack on Titan Final</div><div class="card-meta">2023 · Hành động</div></div><div class="film-card" onclick="showPage('detail')"><div class="poster"><div class="poster-emoji">🔮</div><span class="poster-badge new">MỚI</span><div class="poster-score">⭐9.1</div></div><div class="card-title">Demon Slayer: Hashira</div><div class="card-meta">2024 · Hành động</div></div></div></div>
+    <div class="sec-gap"><div class="sec-hd"><div class="sec-title">🐉 Phim Bộ Trung</div></div><div class="film-row" id="fr-trung"><div class="film-card" onclick="showPage('detail')"><div class="poster"><div class="poster-emoji">🏯</div><span class="poster-badge hot">TOP</span><div class="poster-score">⭐8.3</div></div><div class="card-title">Thượng Công Chúa</div><div class="card-meta">2026 · <span class="card-ep">35/40</span></div></div><div class="film-card" onclick="showPage('detail')"><div class="poster"><div class="poster-emoji">🌸</div><div class="poster-score">⭐9.1</div></div><div class="card-title">Gặp Ánh Trăng</div><div class="card-meta">2026 · <span class="card-ep">18</span></div></div></div></div>
+  </div>
+</div>
+
+<!-- ============ DETAIL PAGE ============ -->
+<div id="page-detail" class="page">
+  <div class="detail-hero">
+    <div class="detail-bg-emoji">🦖</div>
+    <div class="detail-ov1"></div><div class="detail-ov2"></div>
+    <div class="detail-info">
+      <div class="detail-poster-box">🦖</div>
+      <div class="detail-meta">
+        <div class="detail-title">Godzilla Trừ Không</div>
+        <div class="detail-ori">Godzilla Minus Zero (2026) · Nhật Bản</div>
+        <div class="detail-tags"><span class="d-tag genre">Kinh dị</span><span class="d-tag genre">Sci-Fi</span><span class="d-tag">2026</span><span class="d-tag">120 phút</span></div>
+        <div class="detail-score-row"><span class="d-imdb">IMDb 9.5</span><span class="d-score">⭐ 9.5/10</span><span class="d-views">👁 1.24M lượt xem</span></div>
+        <div class="detail-btns">
+          <button class="btn btn-gold" onclick="showToast('Mở VieON...')">▶ Xem Phim</button>
+          <button class="btn btn-trailer" onclick="showToast('Mở Trailer!')">▷ Trailer</button>
+          <button class="btn btn-ghost btn-sm" onclick="showToast('Đã thêm vào Watchlist!')">+ Watchlist</button>
+          <button class="btn btn-ghost btn-sm" onclick="showPage('party')">🎬 Watch Party</button>
+          <button class="btn btn-ghost btn-sm" onclick="showToast('Đã copy link!')">📤 Chia sẻ</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="detail-body">
+    <div class="detail-main">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
+        <div style="background:var(--bg3);border-radius:var(--radius);padding:10px 12px"><div style="font-size:9.5px;color:var(--fg3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-bottom:2px">Đạo diễn</div><div style="font-size:13px;font-weight:600">Takashi Yamazaki</div></div>
+        <div style="background:var(--bg3);border-radius:var(--radius);padding:10px 12px"><div style="font-size:9.5px;color:var(--fg3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-bottom:2px">Khởi chiếu</div><div style="font-size:13px;font-weight:600">12/01/2026</div></div>
+        <div style="background:var(--bg3);border-radius:var(--radius);padding:10px 12px"><div style="font-size:9.5px;color:var(--fg3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-bottom:2px">Hãng SX</div><div style="font-size:13px;font-weight:600">Toho Co., Ltd</div></div>
+        <div style="background:var(--bg3);border-radius:var(--radius);padding:10px 12px"><div style="font-size:9.5px;color:var(--fg3);text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-bottom:2px">Doanh thu</div><div style="font-size:13px;font-weight:600">$850M+</div></div>
+      </div>
+      <div class="d-section">
+        <div class="d-sec-title">Diễn viên</div>
+        <div class="actor-list">
+          <div class="actor-chip"><div class="actor-av">🎭</div><div class="actor-name">Ryunosuke Kamiki</div><div class="actor-role">Shikishima</div></div>
+          <div class="actor-chip"><div class="actor-av">🎭</div><div class="actor-name">Minami Hamabe</div><div class="actor-role">Noriko</div></div>
+          <div class="actor-chip"><div class="actor-av">🎭</div><div class="actor-name">Yuki Yamada</div><div class="actor-role">Noda</div></div>
+          <div class="actor-chip"><div class="actor-av">🎭</div><div class="actor-name">Munetaka Aoki</div><div class="actor-role">Tachibana</div></div>
+          <div class="actor-chip"><div class="actor-av">🎭</div><div class="actor-name">Hidetaka Yoshioka</div><div class="actor-role">Dr. Nishida</div></div>
+          <div class="actor-chip"><div class="actor-av">🎭</div><div class="actor-name">Sakura Ando</div><div class="actor-role">Sumiko</div></div>
+        </div>
+      </div>
+      <div class="d-section">
+        <div class="d-sec-title">Nội dung</div>
+        <div style="font-size:12.5px;color:var(--fg2);line-height:1.75"><p style="margin-bottom:10px"><strong>Godzilla Minus Zero</strong> không chỉ là một phim quái vật. Đây là câu chuyện về con người, về sự sống sót và cái giá của chiến tranh. Ryunosuke Kamiki và Minami Hamabe mang đến chemistry cảm xúc đáng nhớ.</p><p><strong style="color:var(--gold)">Verdict: 9.5/10</strong> — Siêu phẩm không thể bỏ qua. Hãy xem ở IMAX nếu có thể.</p></div>
+      </div>
+      <div class="d-section">
+        <div class="d-sec-title">Đánh giá cộng đồng</div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;padding:12px;background:var(--bg3);border-radius:var(--radius)">
+          <div style="font-size:36px;font-weight:800;color:var(--gold)">9.5</div>
+          <div><div style="color:var(--gold);font-size:18px">★★★★★</div><div style="font-size:11px;color:var(--fg3)">2,100 đánh giá</div></div>
+          <button class="btn btn-gold btn-sm" style="margin-left:auto" onclick="showPage('community');showToast('Viết review trong Cộng đồng!')">✏️ Viết review</button>
+        </div>
+        <div class="rv-item">
+          <div class="rv-item-hd"><div class="rv-av" style="background:linear-gradient(135deg,#E8A040,#C53030)">MH</div><div><div class="rv-item-name">Minh Hoàng</div><div class="rv-item-date">10/11/2026 · Editor</div></div><div class="rv-item-score">9.5★</div></div>
+          <div class="rv-body-text">Godzilla Minus Zero là bằng chứng rằng bạn không cần ngân sách khổng lồ để làm nên kiệt tác. Cực kỳ recommend IMAX!</div>
+          <div class="rv-actions"><span class="rv-act liked" onclick="toggleLike(this)">❤️ 234 Hữu ích</span><span class="rv-act" onclick="showToast('Mở comments...')">💬 48</span><span class="rv-act" onclick="showToast('Đã copy link!')">↗ Chia sẻ</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="detail-side">
+      <div class="d-section" style="padding:14px">
+        <div class="d-sec-title">Xem phim</div>
+        <div class="watch-opt" onclick="showToast('Mở CGV đặt vé...')"><div class="watch-logo" style="background:#E50914;color:#fff;font-size:10px">CGV</div><div><div class="watch-name">CGV Cinemas</div><div class="watch-type">Phim rạp · IMAX & 4DX</div></div><div class="watch-action">Đặt vé →</div></div>
+        <div class="watch-opt" onclick="showToast('Mở Lotte đặt vé...')"><div class="watch-logo" style="background:#ED1C24;color:#fff;font-size:9px">Lotte</div><div><div class="watch-name">Lotte Cinema</div><div class="watch-type">Phim rạp</div></div><div class="watch-action">Đặt vé →</div></div>
+        <div class="watch-opt" onclick="showToast('Mở VieON...')"><div class="watch-logo" style="background:#0A4FF5;color:#fff">V</div><div><div class="watch-name">VieON</div><div class="watch-type">Streaming · Vietsub</div></div><div class="watch-action">Xem →</div></div>
+        <div class="watch-opt" onclick="showToast('Mở Netflix...')"><div class="watch-logo" style="background:#E50914;color:#fff">N</div><div><div class="watch-name">Netflix</div><div class="watch-type">Streaming · 4K HDR</div></div><div class="watch-action">Xem →</div></div>
+      </div>
+      <div class="d-section" style="padding:14px">
+        <div class="d-sec-title">Tags</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px"><span class="ht-pill" onclick="showPage('community')">#GodzillaTruKhong</span><span class="ht-pill">#KinhDi</span><span class="ht-pill">#IMAX</span><span class="ht-pill">#PhimNhat</span><span class="ht-pill">#BomTan2026</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SCHEDULE ============ -->
+<div id="page-schedule" class="page">
+  <div class="wrap">
+    <div class="sec-hd" style="margin-bottom:14px"><div class="sec-title">🎟️ Lịch Chiếu Rạp</div></div>
+    <div class="api-banner"><div class="api-icon">🔌</div><div><div class="api-title">Tích hợp API tự động từ các chuỗi rạp</div><div class="api-body">Dữ liệu sync real-time, click suất chiếu để đặt vé affiliate và nhận hoa hồng.</div><div class="api-tags"><span class="api-tag">CGV API</span><span class="api-tag">Lotte API</span><span class="api-tag">Galaxy API</span><span class="api-tag">BHD API</span><span class="api-tag">Auto 15 phút/lần</span></div></div></div>
+    <div class="sched-tabs"><span class="s-tab active" onclick="setSchedTab(this)">Thứ 6 · 14/11</span><span class="s-tab" onclick="setSchedTab(this)">Thứ 7 · 15/11</span><span class="s-tab" onclick="setSchedTab(this)">CN · 16/11</span><span class="s-tab" onclick="setSchedTab(this)">Thứ 2 · 17/11</span><span class="s-tab" onclick="setSchedTab(this)">Thứ 3 · 18/11</span></div>
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap"><select style="font-size:12px;padding:5px 9px;width:auto"><option>Tất cả chuỗi</option><option>CGV</option><option>Lotte</option><option>Galaxy</option><option>BHD</option></select><select style="font-size:12px;padding:5px 9px;width:auto"><option>TP.HCM</option><option>Hà Nội</option><option>Đà Nẵng</option></select><select style="font-size:12px;padding:5px 9px;width:auto"><option>Tất cả định dạng</option><option>IMAX</option><option>4DX</option><option>2D</option><option>3D</option></select></div>
+    <div class="cinema-grid">
+      <div class="cinema-card"><div class="cinema-poster">🦖</div><div><div class="cinema-name">Godzilla Trừ Không</div><div class="cinema-chain">CGV Landmark 81 · IMAX</div><div class="showtimes"><span class="st" onclick="showToast('Đặt vé 09:30...')">09:30</span><span class="st" onclick="showToast('Đặt vé 12:00...')">12:00</span><span class="st" onclick="showToast('Đặt vé 14:45...')">14:45</span><span class="st" onclick="showToast('Đặt vé 17:30...')">17:30</span><span class="st" onclick="showToast('Đặt vé 20:15...')">20:15</span></div></div></div>
+      <div class="cinema-card"><div class="cinema-poster">🦖</div><div><div class="cinema-name">Godzilla Trừ Không</div><div class="cinema-chain">Lotte Nam Sài Gòn · 4DX</div><div class="showtimes"><span class="st" onclick="showToast('Đặt vé 10:00...')">10:00</span><span class="st" onclick="showToast('Đặt vé 13:30...')">13:30</span><span class="st" onclick="showToast('Đặt vé 16:00...')">16:00</span><span class="st" onclick="showToast('Đặt vé 19:00...')">19:00</span></div></div></div>
+      <div class="cinema-card"><div class="cinema-poster">🏜️</div><div><div class="cinema-name">Dune: Part Two</div><div class="cinema-chain">CGV Aeon Bình Tân · 2D</div><div class="showtimes"><span class="st" onclick="showToast('Đặt vé...')">10:30</span><span class="st" onclick="showToast('Đặt vé...')">13:15</span><span class="st" onclick="showToast('Đặt vé...')">16:00</span><span class="st" onclick="showToast('Đặt vé...')">18:45</span></div></div></div>
+      <div class="cinema-card"><div class="cinema-poster">🎭</div><div><div class="cinema-name">Oppenheimer</div><div class="cinema-chain">Galaxy Nguyễn Du</div><div class="showtimes"><span class="st" onclick="showToast('Đặt vé...')">11:00</span><span class="st" onclick="showToast('Đặt vé...')">14:30</span><span class="st" onclick="showToast('Đặt vé...')">18:00</span><span class="st" onclick="showToast('Đặt vé...')">21:30</span></div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ COMMUNITY ============ -->
+<div id="page-community" class="page">
+  <div class="wrap">
+    <div class="comm-layout">
+      <div>
+        <div class="comm-side-menu">
+          <div class="csm-item active" onclick="this.parentNode.querySelectorAll('.csm-item').forEach(i=>i.classList.remove('active'));this.classList.add('active')">🏠 Tất cả</div>
+          <div class="csm-item" onclick="this.parentNode.querySelectorAll('.csm-item').forEach(i=>i.classList.remove('active'));this.classList.add('active')">✍️ Review</div>
+          <div class="csm-item" onclick="this.parentNode.querySelectorAll('.csm-item').forEach(i=>i.classList.remove('active'));this.classList.add('active')">🔥 Trending</div>
+          <div class="csm-item" onclick="this.parentNode.querySelectorAll('.csm-item').forEach(i=>i.classList.remove('active'));this.classList.add('active')">💬 Thảo luận</div>
+          <div class="csm-item" onclick="this.parentNode.querySelectorAll('.csm-item').forEach(i=>i.classList.remove('active'));this.classList.add('active')">🚨 Spoiler zone</div>
+          <div class="csm-item" onclick="this.parentNode.querySelectorAll('.csm-item').forEach(i=>i.classList.remove('active'));this.classList.add('active')">🎯 Gợi ý phim</div>
+          <div class="csm-item" onclick="this.parentNode.querySelectorAll('.csm-item').forEach(i=>i.classList.remove('active'));this.classList.add('active')">🏆 Bình chọn</div>
+        </div>
+        <div class="hashtag-cloud">
+          <div class="ht-title">Hashtag nổi bật</div>
+          <div class="ht-pills">
+            <span class="ht-pill" onclick="showToast('#GodzillaTruKhong')">#GodzillaTruKhong</span>
+            <span class="ht-pill" onclick="showToast('#HomNayTroiDoMua')">#HomNayTroiDoMua</span>
+            <span class="ht-pill" onclick="showToast('#ThuongCongChua')">#ThuongCongChua</span>
+            <span class="ht-pill" onclick="showToast('#BomTan2026')">#BomTan2026</span>
+            <span class="ht-pill" onclick="showToast('#Anime2026')">#Anime2026</span>
+            <span class="ht-pill" onclick="showToast('#DunePart2')">#DunePart2</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="post-compose">
+          <textarea placeholder="Chia sẻ cảm nhận... dùng #hashtag để gắn phim nhé!"></textarea>
+          <div class="compose-actions">
+            <div class="compose-tags">
+              <span class="c-tag-btn" onclick="this.classList.toggle('on')">📸 Ảnh</span>
+              <span class="c-tag-btn" onclick="this.classList.toggle('on')">🎬 Gắn phim</span>
+              <span class="c-tag-btn" onclick="this.classList.toggle('on')">🚨 Spoiler</span>
+              <span class="c-tag-btn" onclick="this.classList.toggle('on')">⭐ Rating</span>
+            </div>
+            <button class="btn btn-gold btn-sm" onclick="showToast('Đã đăng!')">Đăng</button>
+          </div>
+        </div>
+        <div class="post-feed">
+          <div class="post-card"><div class="post-hd"><div class="post-av">MH</div><div><div class="post-author">Minh Hoàng</div><div class="post-time">2 giờ trước · Editor</div></div><span class="badge badge-gold" style="margin-left:auto">Editor</span></div><div class="post-film-ref" onclick="showPage('detail')">🎬 Godzilla Trừ Không · 2026</div><div class="post-body">Vừa xem xong <span class="post-ht">#GodzillaTruKhong</span> lần 2 tại IMAX Landmark 81. Cảnh Godzilla xuất hiện tại sân bay Haneda — không thứ gì sánh được về mặt kỹ xảo! 🔥</div><div class="post-acts"><span class="post-act" onclick="likePost(this)">🤍 234</span><span class="post-act" onclick="showToast('Mở comments...')">💬 48</span><span class="post-act" onclick="showToast('Đã copy!')">↗ Chia sẻ</span></div></div>
+          <div class="post-card"><div class="post-hd"><div class="post-av" style="background:linear-gradient(135deg,#2A8A45,#1565C0)">NA</div><div><div class="post-author">Ngọc Anh</div><div class="post-time">5 giờ trước</div></div></div><div class="post-film-ref" onclick="showPage('detail')">🎬 Thượng Công Chúa · Tập 35</div><div class="post-body"><span class="post-ht">#ThuongCongChua</span> tập 35 có twist lớn không ai ngờ đến 👀 Rating của mọi người thế nào?</div><div class="post-acts"><span class="post-act" onclick="likePost(this)">🤍 156</span><span class="post-act" onclick="showToast('Mở comments...')">💬 92</span><span class="post-act" onclick="showToast('Đã copy!')">↗</span></div></div>
+        </div>
+      </div>
+      <div>
+        <div class="trending-side-box">
+          <div class="tr-title">🔥 Trending bây giờ</div>
+          <div class="tr-item"><div class="tr-num">1</div><div class="tr-name">#GodzillaTruKhong</div><div class="tr-cnt">2.1k</div></div>
+          <div class="tr-item"><div class="tr-num">2</div><div class="tr-name">#ThuongCongChua</div><div class="tr-cnt">1.4k</div></div>
+          <div class="tr-item"><div class="tr-num">3</div><div class="tr-name">#HomNayTroiDoMua</div><div class="tr-cnt">987</div></div>
+          <div class="tr-item"><div class="tr-num">4</div><div class="tr-name">#BomTan2026</div><div class="tr-cnt">756</div></div>
+          <div class="tr-item"><div class="tr-num">5</div><div class="tr-name">#Anime2026</div><div class="tr-cnt">634</div></div>
+        </div>
+        <div class="trending-side-box">
+          <div class="tr-title">👤 Top Reviewer tuần</div>
+          <div class="tr-item"><div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--crimson));display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0">MH</div><div class="tr-name">Minh Hoàng</div><div class="tr-cnt">12 bài</div></div>
+          <div class="tr-item"><div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#2A8A45,#1565C0);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0">NA</div><div class="tr-name">Ngọc Anh</div><div class="tr-cnt">9 bài</div></div>
+          <div class="tr-item"><div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#9333EA,#C53030);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0">TK</div><div class="tr-name">Trung Kiên</div><div class="tr-cnt">7 bài</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ WATCHLIST ============ -->
+<div id="page-watchlist" class="page">
+  <div class="wrap">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;flex-wrap:wrap">
+      <div class="sec-title">📚 Watchlist của tôi</div>
+      <div class="wl-tabs"><span class="wl-tab active" onclick="setWLTab('w',this)">▶ Đang xem</span><span class="wl-tab" onclick="setWLTab('wt',this)">🔖 Muốn xem</span><span class="wl-tab" onclick="setWLTab('d',this)">✅ Đã xem</span></div>
+    </div>
+    <div id="wl-w">
+      <div class="wl-section"><div class="wl-sec-title">🏯 Phim Bộ Hàn / Trung</div><div class="wl-grid"><div class="wl-card" onclick="showPage('detail')"><div class="wl-poster">🌧️<div class="wl-bar"><div class="wl-prog"><div class="wl-prog-fill" style="width:67%"></div></div><span class="wl-prog-txt">16/24</span></div></div><div class="wl-info"><div class="wl-title">Hôm Nay Trời Đổ Mưa</div><div class="wl-ori">Sunshine Through the Rain</div><div class="wl-actors">Nam chính, Nữ chính</div><div class="wl-ep">Tập 16/24 · Mới nhất</div></div></div><div class="wl-card" onclick="showPage('detail')"><div class="wl-poster">🏯<div class="wl-bar"><div class="wl-prog"><div class="wl-prog-fill" style="width:88%"></div></div><span class="wl-prog-txt">35/40</span></div></div><div class="wl-info"><div class="wl-title">Thượng Công Chúa</div><div class="wl-ori">Tigers Sniff the Rose</div><div class="wl-actors">Zuo Qin · Meng Rui</div><div class="wl-ep">Tập 35/40 · Còn 5</div></div></div><div class="wl-card" onclick="showPage('detail')"><div class="wl-poster">💔<div class="wl-bar"><div class="wl-prog"><div class="wl-prog-fill" style="width:40%"></div></div><span class="wl-prog-txt">10/?</span></div></div><div class="wl-info"><div class="wl-title">100 Ngày Lừa Dối</div><div class="wl-ori">100 Days of Deception</div><div class="wl-actors">Hàn Quốc 2026</div><div class="wl-ep">Tập 10 · Đang chiếu</div></div></div></div></div>
+      <div class="wl-section"><div class="wl-sec-title">⛩️ Anime</div><div class="wl-grid"><div class="wl-card" onclick="showPage('detail')"><div class="wl-poster">👹<div class="wl-bar"><div class="wl-prog"><div class="wl-prog-fill" style="width:60%"></div></div><span class="wl-prog-txt">14/24</span></div></div><div class="wl-info"><div class="wl-title">Jujutsu Kaisen S3</div><div class="wl-actors">Yuji · Megumi · Nobara</div><div class="wl-ep">Tập 14/24 · MAPPA</div></div></div><div class="wl-card" onclick="showPage('detail')"><div class="wl-poster">🗡️<div class="wl-bar"><div class="wl-prog"><div class="wl-prog-fill" style="width:50%"></div></div><span class="wl-prog-txt">6/12</span></div></div><div class="wl-info"><div class="wl-title">Demon Slayer: Hashira</div><div class="wl-actors">Tanjiro · Nezuko</div><div class="wl-ep">Tập 6/12 · Ufotable</div></div></div></div></div>
+    </div>
+    <div id="wl-wt" hidden><div class="wl-section"><div class="wl-sec-title">🔖 Muốn xem</div><div class="wl-grid"><div class="wl-card" onclick="showPage('detail')"><div class="wl-poster">🎭</div><div class="wl-info"><div class="wl-title">Oppenheimer</div><div class="wl-actors">Cillian Murphy</div><div class="wl-ep">180 phút · IMDb 8.9</div></div></div><div class="wl-card" onclick="showPage('detail')"><div class="wl-poster">🌸</div><div class="wl-info"><div class="wl-title">Frieren</div><div class="wl-actors">28 tập · IMDb 8.5</div><div class="wl-ep">Fantasy · Isekai</div></div></div></div></div></div>
+    <div id="wl-d" hidden><div class="wl-section"><div class="wl-sec-title">✅ Đã xem</div><div class="wl-grid"><div class="wl-card" onclick="showPage('detail')"><div class="wl-poster">💔<div class="wl-bar" style="justify-content:flex-end"><span class="wl-prog-txt">9.1⭐</span></div></div><div class="wl-info"><div class="wl-title">Crash Landing on You</div><div class="wl-actors">Hyun Bin · Son Ye-jin</div><div class="wl-ep">16 tập · 2019</div></div></div><div class="wl-card" onclick="showPage('detail')"><div class="wl-poster">👹<div class="wl-bar" style="justify-content:flex-end"><span class="wl-prog-txt">9.4⭐</span></div></div><div class="wl-info"><div class="wl-title">Jujutsu Kaisen 0</div><div class="wl-actors">Yuta · Rika Orimoto</div><div class="wl-ep">105 phút · 2021</div></div></div></div></div></div>
+  </div>
+</div>
+
+<!-- ============ WATCH PARTY ============ -->
+<div id="page-party" class="page">
+  <div class="party-wrap">
+    <div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:11px"><div class="sec-title">🎬 Watch Party</div><span class="badge badge-green">🔴 Live · 5 người</span><span class="badge badge-blue" style="margin-left:auto">Kung Fu Panda 4</span></div>
+      <div class="party-player"><iframe src="https://www.youtube.com/embed/5L0gBMzBZIo?rel=0&modestbranding=1" title="Kung Fu Panda 4" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen></iframe></div>
+      <div style="font-size:10.5px;color:var(--fg3);text-align:center;margin-top:5px">🐼 Demo trailer · Production sẽ link tới VieON / Netflix / CGV</div>
+    </div>
+    <div class="party-side">
+      <div class="party-viewers"><div style="font-size:12.5px;font-weight:700">👥 Đang xem cùng <span class="badge badge-green">5</span></div><div class="viewer-list"><div class="v-chip"><div class="v-av" style="background:#C47D10">P</div>Bạn<div class="v-dot"></div></div><div class="v-chip"><div class="v-av" style="background:#C53030">MH</div>Minh Hoàng<div class="v-dot"></div></div><div class="v-chip"><div class="v-av" style="background:#2A8A45">NA</div>Ngọc Anh<div class="v-dot"></div></div></div></div>
+      <div class="party-chat">
+        <div class="chat-hd">💬 Live Chat <span class="badge badge-green" style="font-size:9.5px">Live</span></div>
+        <div class="chat-msgs" id="chat-msgs"><div class="c-msg"><span class="c-ts">19:42</span><span class="c-user">Minh Hoàng:</span>Kung Fu Panda 4 vui lắm mọi người ơi 😂</div><div class="c-msg"><span class="c-ts">19:43</span><span class="c-user">Ngọc Anh:</span>Po cute quá trời ơi 🐼❤️</div></div>
+        <div class="chat-inp"><input type="text" id="chat-in" placeholder="Nhắn tin..." onkeydown="if(event.key==='Enter')sendChat()"><div class="send-btn" onclick="sendChat()">↑</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ PARTNER PAGE ============ -->
+<div id="page-partner" class="page">
+  <div class="wrap">
+    <div class="partner-hero">
+      <div class="ph-bg">🤝</div>
+      <div class="ph-eyebrow">ReviewPhim.vn · 500K+ người dùng · 2026–2027</div>
+      <div class="ph-title">Hợp tác & Đối tác</div>
+      <div class="ph-sub">Nền tảng review phim hàng đầu Việt Nam. Cùng nhau xây dựng hệ sinh thái điện ảnh số tốt nhất cho người Việt.</div>
+      <div class="ph-btns">
+        <button class="btn btn-gold" onclick="document.getElementById('p-form-section').scrollIntoView({behavior:'smooth'})">📩 Gửi đề xuất</button>
+        <button class="btn btn-trailer" onclick="showToast('Tải Media Kit...')">📄 Media Kit</button>
+      </div>
+    </div>
+
+    <div class="partner-stats">
+      <div class="p-stat"><span class="p-stat-num">500K+</span><div class="p-stat-label">Người dùng / tháng</div></div>
+      <div class="p-stat"><span class="p-stat-num">1.2M+</span><div class="p-stat-label">Lượt xem / tháng</div></div>
+      <div class="p-stat"><span class="p-stat-num">12K+</span><div class="p-stat-label">Review được viết</div></div>
+      <div class="p-stat"><span class="p-stat-num">85%</span><div class="p-stat-label">User 18–35 tuổi</div></div>
+    </div>
+
+    <!-- ADS & SUBSCRIPTION -->
+    <div class="sec-hd" style="margin-bottom:14px"><div class="sec-title">💰 Quảng cáo & Subscription</div></div>
+    <div class="p-special-grid sec-gap">
+      <div class="p-special">
+        <div class="p-special-title">🖼️ Quảng cáo & Banner</div>
+        <div class="ads-formats">
+          <div class="ads-format"><div class="ads-format-icon">📌</div><div><div class="ads-format-name">Banner Homepage (970×250)</div><div class="ads-format-desc">Vị trí trên cùng · 2M+ impression/tháng</div></div></div>
+          <div class="ads-format"><div class="ads-format-icon">🎬</div><div><div class="ads-format-name">In-feed Native Ads</div><div class="ads-format-desc">Tích hợp vào dòng phim/review · CTR cao</div></div></div>
+          <div class="ads-format"><div class="ads-format-icon">📱</div><div><div class="ads-format-name">Push Notification Sponsored</div><div class="ads-format-desc">500K subscribers · Open rate ~18%</div></div></div>
+          <div class="ads-format"><div class="ads-format-icon">📧</div><div><div class="ads-format-name">Email Marketing Blast</div><div class="ads-format-desc">Database 150K emails · Phân khúc theo sở thích</div></div></div>
+          <div class="ads-format"><div class="ads-format-icon">🔍</div><div><div class="ads-format-name">Sponsored Search Results</div><div class="ads-format-desc">Phim / diễn viên / thể loại được tài trợ xuất hiện đầu</div></div></div>
+        </div>
+      </div>
+      <div class="p-special">
+        <div class="p-special-title">⭐ Gói Subscription</div>
+        <div class="sub-tiers">
+          <div class="sub-tier"><div class="sub-tier-name">🆓 Miễn phí</div><div class="sub-tier-price">0 đ / tháng</div><div class="sub-tier-features">• Xem 1 tập review đầu<br>• Viết review không giới hạn<br>• Watchlist tối đa 20 phim<br>• Quảng cáo hiển thị</div></div>
+          <div class="sub-tier popular"><div class="sub-tier-popular">PHỔ BIẾN</div><div class="sub-tier-name">⭐ Premium</div><div class="sub-tier-price">49.000 đ / tháng</div><div class="sub-tier-features">• Xem toàn bộ review không giới hạn<br>• Không quảng cáo<br>• Watchlist không giới hạn<br>• Early access review độc quyền<br>• Watch Party HD</div></div>
+          <div class="sub-tier"><div class="sub-tier-name">💎 VIP Reviewer</div><div class="sub-tier-price">99.000 đ / tháng</div><div class="sub-tier-features">• Tất cả tính năng Premium<br>• Badge Verified Reviewer<br>• Hoa hồng affiliate 8%<br>• Suất chiếu sớm (Screening)<br>• Priority support</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PARTNER TYPES -->
+    <div class="sec-hd" style="margin-bottom:14px"><div class="sec-title">🎯 Hình thức hợp tác</div></div>
+    <div class="partner-types-grid sec-gap">
+      <div class="p-type">
+        <div class="p-type-icon">🎬</div>
+        <div class="p-type-title">Nhà sản xuất / Phát hành</div>
+        <div class="p-type-desc">PR phim trước ngày chiếu, review độc quyền sớm, event ra mắt phim, seeding cộng đồng hữu cơ, affiliate ticket.</div>
+        <div class="p-type-partners"><span class="p-partner-logo">CGV</span><span class="p-partner-logo">Toho</span><span class="p-partner-logo">Warner</span><span class="p-partner-logo">Disney</span></div>
+        <div class="p-type-tags"><span class="p-type-tag">Pre-launch PR</span><span class="p-type-tag">Exclusive review</span><span class="p-type-tag">Affiliate vé</span></div>
+      </div>
+      <div class="p-type">
+        <div class="p-type-icon">📺</div>
+        <div class="p-type-title">Nền tảng Streaming</div>
+        <div class="p-type-desc">Affiliate link (VieON, Netflix, FPT Play), widget "Xem ngay" tích hợp vào từng phim, banner quảng cáo nội dung.</div>
+        <div class="p-type-partners"><span class="p-partner-logo">VieON</span><span class="p-partner-logo">Netflix</span><span class="p-partner-logo">FPT Play</span></div>
+        <div class="p-type-tags"><span class="p-type-tag">Affiliate</span><span class="p-type-tag">Banner ads</span><span class="p-type-tag">API tích hợp</span></div>
+      </div>
+      <div class="p-type">
+        <div class="p-type-icon">🏢</div>
+        <div class="p-type-title">Rạp Chiếu Phim</div>
+        <div class="p-type-desc">Tích hợp API lịch chiếu tự động, affiliate mỗi vé bán qua ReviewPhim.vn, widget lịch nhúng vào trang phim.</div>
+        <div class="p-type-partners"><span class="p-partner-logo">CGV</span><span class="p-partner-logo">Lotte</span><span class="p-partner-logo">BHD</span><span class="p-partner-logo">Galaxy</span></div>
+        <div class="p-type-tags"><span class="p-type-tag">API lịch chiếu</span><span class="p-type-tag">Affiliate vé</span></div>
+      </div>
+      <div class="p-type">
+        <div class="p-type-icon">📱</div>
+        <div class="p-type-title">Brand & Nhà tài trợ</div>
+        <div class="p-type-desc">Branded content trong review, sponsored section, email marketing 500K subscribers, push notification app users.</div>
+        <div class="p-type-partners"><span class="p-partner-logo">Samsung</span><span class="p-partner-logo">Grab</span><span class="p-partner-logo">Momo</span></div>
+        <div class="p-type-tags"><span class="p-type-tag">Branded content</span><span class="p-type-tag">Email blast</span></div>
+      </div>
+      <div class="p-type">
+        <div class="p-type-icon">✍️</div>
+        <div class="p-type-title">Creator & KOL / KOC</div>
+        <div class="p-type-desc">Reviewer chính thức, nhận traffic SEO, affiliate hoa hồng, badge verified, early screening access.</div>
+        <div class="p-type-partners"><span class="p-partner-logo">+120 KOC</span><span class="p-partner-logo">+40 KOL</span></div>
+        <div class="p-type-tags"><span class="p-type-tag">Reviewer badge</span><span class="p-type-tag">SEO traffic</span><span class="p-type-tag">Hoa hồng</span></div>
+      </div>
+      <div class="p-type">
+        <div class="p-type-icon">🎓</div>
+        <div class="p-type-title">Trường ĐH / CLB Phim</div>
+        <div class="p-type-desc">Tài khoản Organization miễn phí, trang riêng cho CLB, đăng review tập thể, Watch Party online.</div>
+        <div class="p-type-partners"><span class="p-partner-logo">UEH Film</span><span class="p-partner-logo">RMIT Cinephile</span></div>
+        <div class="p-type-tags"><span class="p-type-tag">Tài khoản CLB</span><span class="p-type-tag">Miễn phí</span></div>
+      </div>
+    </div>
+
+    <!-- FORM -->
+    <div id="p-form-section" class="p-form-wrap">
+      <div class="p-form">
+        <div class="p-form-title">📩 Gửi đề xuất hợp tác</div>
+        <div class="form-row"><div class="form-group"><div class="form-label">Họ tên *</div><input type="text" placeholder="Nguyễn Văn A"></div><div class="form-group"><div class="form-label">Email *</div><input type="email" placeholder="contact@company.com"></div></div>
+        <div class="form-row"><div class="form-group"><div class="form-label">Công ty</div><input type="text" placeholder="Tên công ty"></div><div class="form-group"><div class="form-label">Điện thoại</div><input type="tel" placeholder="0901 234 567"></div></div>
+        <div class="form-group"><div class="form-label">Hình thức hợp tác *</div><select><option value="">— Chọn hình thức —</option><option>Nhà sản xuất / Phát hành phim</option><option>Nền tảng Streaming</option><option>Rạp Chiếu Phim</option><option>Brand & Nhà tài trợ</option><option>Đặt banner / quảng cáo</option><option>Creator / KOL / KOC</option><option>Trường ĐH / CLB Phim</option><option>Khác</option></select></div>
+        <div class="form-group"><div class="form-label">Nội dung đề xuất *</div><textarea placeholder="Mô tả chi tiết về đề xuất, mục tiêu, timeline và ngân sách dự kiến..." style="min-height:90px"></textarea></div>
+        <button class="btn btn-gold" style="width:100%;justify-content:center;padding:10px;font-size:13px" onclick="showToast('Đã gửi! Chúng tôi phản hồi trong 24–48h 🙌')">Gửi đề xuất →</button>
+        <div style="font-size:11px;color:var(--fg3);text-align:center;margin-top:9px">partner@reviewphim.vn · Phản hồi trong 24–48h làm việc</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.toggle{width:34px;height:18px;border-radius:9px;background:var(--border2);position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.toggle.on{background:var(--gold)}
+.toggle::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:transform .2s}
+.toggle.on::after{transform:translateX(16px)}
+</style>
+
+<script>
+/* ===== PAGES ===== */
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+  const pg=document.getElementById('page-'+id);
+  if(pg)pg.classList.add('active');
+  const nl=document.getElementById('nav-'+id);
+  if(nl)nl.classList.add('active');
+  window.scrollTo(0,0);
+}
+
+/* ===== TOAST ===== */
+let _tt;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  document.getElementById('toast-msg').textContent=msg;
+  t.classList.add('show');
+  clearTimeout(_tt);
+  _tt=setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+/* ===== LOGIN ===== */
+function openLogin(){document.getElementById('screen-login').classList.add('show');}
+function closeLogin(){document.getElementById('screen-login').classList.remove('show');}
+function loginNormal(){closeLogin();enterUserDash();}
+function enterUserDash(){
+  document.getElementById('screen-login').classList.remove('show');
+  document.getElementById('screen-user').classList.add('show');
+}
+function closeUser(){document.getElementById('screen-user').classList.remove('show');}
+function enterAdminDash(){
+  document.getElementById('screen-login').classList.remove('show');
+  document.getElementById('screen-admin').classList.add('show');
+}
+function closeAdmin(){document.getElementById('screen-admin').classList.remove('show');}
+function setLoginTab(tab,el){
+  document.querySelectorAll('.login-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('login-form-wrap').style.display=tab==='login'?'':'none';
+  document.getElementById('reg-form-wrap').style.display=tab==='register'?'':'none';
+}
+
+/* ===== TABS ===== */
+function setSchedTab(el){document.querySelectorAll('.s-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active')}
+function setNewsTab(el){document.querySelectorAll('.n-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active')}
+function setWLTab(tab,el){
+  document.querySelectorAll('.wl-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['w','wt','d'].forEach(t=>{const e=document.getElementById('wl-'+t);if(e)e.hidden=t!==tab});
+}
+function filterFilms(cat,btn){
+  document.querySelectorAll('.btn[id^="fc-"]').forEach(b=>{b.classList.remove('btn-gold');b.classList.add('btn-ghost')});
+  btn.classList.add('btn-gold');btn.classList.remove('btn-ghost');
+  const map={rap:'fr-rap',han:'fr-han',anime:'fr-anime',trung:'fr-trung'};
+  if(cat==='all'){['fr-rap','fr-han','fr-anime','fr-trung'].forEach(id=>{const e=document.getElementById(id);if(e)e.closest('.sec-gap').style.display=''})}
+  else{['fr-rap','fr-han','fr-anime','fr-trung'].forEach(id=>{const e=document.getElementById(id);if(e)e.closest('.sec-gap').style.display=map[cat]===id?'':'none'})}
+}
+
+/* ===== INTERACTIONS ===== */
+function toggleLike(el){
+  el.classList.toggle('liked');
+  const n=parseInt(el.textContent.match(/\d+/)[0]);
+  el.textContent=(el.classList.contains('liked')?'❤️ ':'🤍 ')+(el.classList.contains('liked')?n+1:n-1)+' Hữu ích';
+}
+function likePost(el){
+  el.classList.toggle('liked');
+  const n=parseInt(el.textContent.match(/\d+/)[0]);
+  el.textContent=(el.classList.contains('liked')?'❤️ ':'🤍 ')+(el.classList.contains('liked')?n+1:n-1);
+}
+function sendChat(){
+  const inp=document.getElementById('chat-in');
+  const msgs=document.getElementById('chat-msgs');
+  if(!inp||!msgs||!inp.value.trim())return;
+  const msg=document.createElement('div');
+  msg.className='c-msg';
+  const now=new Date();
+  const ts=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  msg.innerHTML=`<span class="c-ts">${ts}</span><span class="c-user">Bạn:</span>${inp.value}`;
+  msgs.appendChild(msg);
+  inp.value='';
+  msgs.scrollTop=msgs.scrollHeight;
+}
+</script>
