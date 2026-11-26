@@ -1,5 +1,5 @@
 "use client";
-
+//oke
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { browserClient } from "@/lib/supabase/browser";
