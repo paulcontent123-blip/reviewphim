@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { canPostContent, CONTENT_OFF_MESSAGE } from "@/lib/content";
 import { hasSupabase } from "@/lib/env";
 import { sessionClient } from "@/lib/supabase/server";
 import { isUuid } from "@/lib/text";
@@ -14,6 +15,7 @@ export interface ActionState {
 const NOT_READY: ActionState = { error: "Chưa nối Supabase nên chưa lưu được." };
 const SIGN_IN: ActionState = { error: "Bạn cần đăng nhập." };
 const FAILED: ActionState = { error: "Không lưu được, vui lòng thử lại." };
+const CONTENT_OFF: ActionState = { error: CONTENT_OFF_MESSAGE };
 
 const validScore = (n: number) => Number.isInteger(n) && n >= 1 && n <= 10;
 const validSlug = (s: string) => /^[a-z0-9-]+$/.test(s);
@@ -25,6 +27,7 @@ async function saveReview(filmId: string, values: ReviewValues): Promise<{ state
   const db = sessionClient();
   const { data } = await db.auth.getUser();
   if (!data.user) return { state: SIGN_IN, slug: null };
+  if (!(await canPostContent(db))) return { state: CONTENT_OFF, slug: null };
 
   const updated = await db.from("reviews").update(values).eq("film_id", filmId).eq("author_id", data.user.id).select("slug");
   if (updated.error) {
@@ -95,6 +98,8 @@ export async function toggleLike(reviewId: string, reviewSlug: string, like: boo
   const db = sessionClient();
   const { data } = await db.auth.getUser();
   if (!data.user) return SIGN_IN;
+  // Bỏ "Hữu ích" vẫn được khi công tắc tắt.
+  if (like && !(await canPostContent(db))) return CONTENT_OFF;
   const row = { user_id: data.user.id, review_id: reviewId };
   const { error } = like ? await db.from("review_likes").insert(row) : await db.from("review_likes").delete().match(row);
   // 23505: đã like từ trước, coi như xong.

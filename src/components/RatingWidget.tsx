@@ -4,11 +4,15 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import useSWR from "swr";
 import { rateFilm } from "@/app/actions";
+import { CONTENT_OFF_MESSAGE } from "@/lib/content";
 import { browserClient } from "@/lib/supabase/browser";
 import { useAuth } from "@/store/auth";
+import { useCanPost } from "./useCanPost";
+import { WriteReviewLink } from "./WriteReviewLink";
 
 export function RatingWidget({ filmId, filmSlug }: { filmId: string; filmSlug: string }) {
   const user = useAuth((s) => s.user);
+  const canPost = useCanPost();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string>();
   const { data: mine, mutate } = useSWR(user ? ["my-score", filmId, user.id] : null, async ([, film, uid]) => {
@@ -26,37 +30,42 @@ export function RatingWidget({ filmId, filmSlug }: { filmId: string; filmSlug: s
   return (
     <section className="card p-4">
       <h2 className="sec-title mb-2">Chấm điểm phim này</h2>
-      {user ? (
-        <div className="grid grid-cols-5 gap-1.5" role="group" aria-label="Chọn điểm">
-          {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-            <button
-              key={n}
-              type="button"
-              disabled={pending}
-              aria-pressed={mine === n}
-              onClick={() => rate(n)}
-              className={`h-11 rounded-md border text-sm font-bold ${mine === n ? "border-goldtext bg-goldtext text-white" : "border-line bg-bg3"}`}
-            >
-              {n}
-            </button>
-          ))}
-        </div>
-      ) : (
-        <p className="text-sm text-fg2">
-          <Link href={`/dang-nhap?next=/phim/${filmSlug}`} className="font-semibold text-blue underline">
-            Đăng nhập
-          </Link>{" "}
-          để chấm điểm.
-        </p>
+      {/* Giữ chỗ khi chưa biết trạng thái công tắc, tránh hiện nút rồi lại ẩn. */}
+      {canPost === undefined && <div className="min-h-[96px]" aria-hidden />}
+      {canPost === false && <p className="text-sm text-fg2">{CONTENT_OFF_MESSAGE}</p>}
+      {canPost && (
+        <>
+          {user ? (
+            <div className="grid grid-cols-5 gap-1.5" role="group" aria-label="Chọn điểm">
+              {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  disabled={pending}
+                  aria-pressed={mine === n}
+                  onClick={() => rate(n)}
+                  className={`h-11 rounded-md border text-sm font-bold ${mine === n ? "border-goldtext bg-goldtext text-white" : "border-line bg-bg3"}`}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-fg2">
+              <Link href={`/dang-nhap?next=/phim/${filmSlug}`} className="font-semibold text-blue underline">
+                Đăng nhập
+              </Link>{" "}
+              để chấm điểm.
+            </p>
+          )}
+          {error && (
+            <p role="alert" className="mt-2 text-sm text-crimson">
+              {error}
+            </p>
+          )}
+          <WriteReviewLink filmSlug={filmSlug} className="btn-ghost mt-3 w-full" />
+        </>
       )}
-      {error && (
-        <p role="alert" className="mt-2 text-sm text-crimson">
-          {error}
-        </p>
-      )}
-      <Link href={`/phim/${filmSlug}/viet-review`} className="btn-ghost mt-3 w-full" prefetch={false}>
-        Viết review
-      </Link>
     </section>
   );
 }

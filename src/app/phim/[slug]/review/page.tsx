@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ReviewCard } from "@/components/ReviewCard";
+import { WriteReviewLink } from "@/components/WriteReviewLink";
 import { getFilm, listReviews } from "@/lib/data";
 
 export const revalidate = 300;
@@ -29,9 +30,7 @@ export default async function FilmReviewsPage({ params }: Props) {
         ← {film.title}
       </Link>
       <h1 className="mb-4 font-display text-2xl font-bold">Review phim {film.title}</h1>
-      <Link href={`/phim/${film.slug}/viet-review`} className="btn-gold mb-6" prefetch={false}>
-        Viết review
-      </Link>
+      <WriteReviewLink filmSlug={film.slug} className="btn-gold mb-6" />
       {reviews.length ? (
         <div className="grid gap-4 sm:grid-cols-2">
           {reviews.map((r) => (

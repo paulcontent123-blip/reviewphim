@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { canPostContent, isPostingOff } from "@/lib/content";
 import { movieJsonLd, serializeJsonLd } from "@/lib/jsonld";
 import { FILMS } from "@/lib/data/sample";
 import { excerpt, safeNext, slugify, unaccent, youtubeId } from "@/lib/text";
@@ -72,5 +73,28 @@ describe("JSON-LD", () => {
   });
   it("không cho nội dung đóng thẻ script", () => {
     expect(serializeJsonLd({ a: "</script><script>alert(1)</script>" })).not.toContain("<");
+  });
+});
+
+describe("công tắc nội dung", () => {
+  it("chỉ coi là tắt khi database trả đúng false", () => {
+    expect(isPostingOff({ data: false, error: null })).toBe(true);
+    expect(isPostingOff({ data: true, error: null })).toBe(false);
+    expect(isPostingOff({ data: null, error: null })).toBe(false);
+  });
+  it("lỗi đọc cờ thì không tự khóa giao diện, database vẫn chặn", () => {
+    expect(isPostingOff({ data: false, error: { message: "mất mạng" } })).toBe(false);
+  });
+  it("hỏi đúng hàm can_post_content", async () => {
+    const asked: string[] = [];
+    const db = (data: boolean) => ({
+      rpc: async (fn: "can_post_content") => {
+        asked.push(fn);
+        return { data, error: null };
+      },
+    });
+    expect(await canPostContent(db(false))).toBe(false);
+    expect(await canPostContent(db(true))).toBe(true);
+    expect(asked).toEqual(["can_post_content", "can_post_content"]);
   });
 });

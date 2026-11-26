@@ -34,7 +34,7 @@ const user = (uid: string, sql: string, p?: unknown[]) => as("authenticated", ui
 beforeAll(async () => {
   db = new PGlite();
   await db.exec(SUPABASE_STUB);
-  for (const f of ["0001_techspec", "0002_phase1", "0003_review_moderation"]) {
+  for (const f of ["0001_techspec", "0002_phase1", "0003_review_moderation", "0004_content_switch"]) {
     await db.exec(readFileSync(`supabase/migrations/${f}.sql`, "utf8"));
   }
   await db.query("insert into auth.users values ($1), ($2)", [A, B]);
@@ -209,6 +209,100 @@ describe("kiểm duyệt và tag", () => {
     await db.query("delete from reviews where author_id = $1", [C]);
     const insert = "insert into reviews (film_id, author_id, score, tags) values ($1, $2, 7, $3)";
     await expect(user(C, insert, [film, C, Array(6).fill("a")])).rejects.toThrow(/reviews_tags_valid/);
+  });
+});
+
+describe("công tắc nội dung người dùng", () => {
+  const VIEWER = "d4444444-4444-4444-8444-444444444444";
+  const NEWCOMER = "e5555555-5555-4555-8555-555555555555";
+  const ADMIN = "f6666666-6666-4666-8666-666666666666";
+  const rate = "insert into reviews (film_id, author_id, score) values ($1, $2, 7)";
+  const post = "insert into reviews (film_id, author_id, score, title, content) values ($1, $2, 7, 'Xem được', $3)";
+  const like = "insert into review_likes (user_id, review_id) values ($1, $2)";
+  const edit = "update reviews set score = 6 where author_id = $1 returning id";
+  let target: string; // bài của người khác để bấm "Hữu ích"
+
+  const setSwitch = (on: boolean) => db.query("update site_settings set ugc_enabled = $1", [on]);
+  const canPost = async (role: string, uid: string | null) =>
+    (await as<{ ok: boolean }>(role, uid, "select can_post_content() as ok"))[0].ok;
+  const votes = async () =>
+    (await db.query<{ vote_count: number }>("select vote_count from films where id = $1", [film])).rows[0].vote_count;
+
+  beforeAll(async () => {
+    await db.query("insert into auth.users values ($1), ($2), ($3)", [VIEWER, NEWCOMER, ADMIN]);
+    await db.query("update profiles set role = 'admin' where id = $1", [ADMIN]);
+    target = (await db.query<{ id: string }>("select id from review_feed limit 1")).rows[0].id;
+    await user(VIEWER, post, [film, VIEWER, LONG]);
+    await user(VIEWER, like, [VIEWER, target]);
+  });
+  afterAll(async () => {
+    await db.query("delete from auth.users where id in ($1, $2, $3)", [VIEWER, NEWCOMER, ADMIN]);
+  });
+
+  it("mặc định đang bật", async () => {
+    expect(await canPost("anon", null)).toBe(true);
+    expect(await canPost("authenticated", VIEWER)).toBe(true);
+  });
+
+  it("chỉ service_role đọc và đổi được cờ", async () => {
+    for (const run of [anon, (sql: string) => user(VIEWER, sql), (sql: string) => user(ADMIN, sql)]) {
+      await expect(run("select ugc_enabled from site_settings")).rejects.toThrow(/permission denied/);
+      await expect(run("update site_settings set ugc_enabled = false")).rejects.toThrow(/permission denied/);
+    }
+    expect(await as("service_role", null, "update site_settings set ugc_enabled = false returning ugc_enabled")).toEqual([
+      { ugc_enabled: false },
+    ]);
+  });
+
+  it("tắt: người thường không chấm điểm, đăng hay sửa được", async () => {
+    await setSwitch(false);
+    expect(await canPost("anon", null)).toBe(false);
+    expect(await canPost("authenticated", VIEWER)).toBe(false);
+    await expect(user(NEWCOMER, rate, [film, NEWCOMER])).rejects.toThrow(/row-level security/);
+    await expect(user(NEWCOMER, post, [film, NEWCOMER, LONG])).rejects.toThrow(/row-level security/);
+    // Phải báo lỗi, không được lặng lẽ sửa 0 dòng.
+    await expect(user(VIEWER, edit, [VIEWER])).rejects.toThrow(/row-level security/);
+  });
+
+  it("tắt: không thêm được lượt Hữu ích", async () => {
+    await expect(user(NEWCOMER, like, [NEWCOMER, target])).rejects.toThrow(/row-level security/);
+  });
+
+  it("tắt: admin vẫn đăng, sửa và bấm Hữu ích được", async () => {
+    expect(await canPost("authenticated", ADMIN)).toBe(true);
+    await user(ADMIN, post, [film, ADMIN, LONG]);
+    expect(await user(ADMIN, edit, [ADMIN])).toHaveLength(1);
+    await user(ADMIN, like, [ADMIN, target]);
+  });
+
+  it("tắt: khách vẫn đọc được phim và review", async () => {
+    expect(await anon("select id from films")).toHaveLength(1);
+    expect((await anon("select id from review_feed")).length).toBeGreaterThan(0);
+  });
+
+  it("tắt: vẫn bỏ Hữu ích và xóa bài của mình được, điểm phim tính lại", async () => {
+    expect(await user(VIEWER, "delete from review_likes where review_id = $1 returning review_id", [target])).toHaveLength(1);
+    const before = await votes();
+    expect(await user(VIEWER, "delete from reviews where author_id = $1 returning id", [VIEWER])).toHaveLength(1);
+    expect(await votes()).toBe(before - 1);
+  });
+
+  it("bật lại là đăng được ngay", async () => {
+    await setSwitch(true);
+    await user(NEWCOMER, rate, [film, NEWCOMER]);
+    await user(NEWCOMER, like, [NEWCOMER, target]);
+    expect(await user(NEWCOMER, edit, [NEWCOMER])).toHaveLength(1);
+  });
+
+  it("mất dòng cờ thì coi như tắt", async () => {
+    await db.query("delete from site_settings");
+    try {
+      expect(await canPost("authenticated", NEWCOMER)).toBe(false);
+      expect(await canPost("authenticated", ADMIN)).toBe(true);
+      await expect(user(NEWCOMER, edit, [NEWCOMER])).rejects.toThrow(/row-level security/);
+    } finally {
+      await db.query("insert into site_settings default values");
+    }
   });
 });
 

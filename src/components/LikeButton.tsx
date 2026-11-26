@@ -3,11 +3,14 @@
 import { useState, useTransition } from "react";
 import useSWR from "swr";
 import { toggleLike } from "@/app/actions";
+import { CONTENT_OFF_MESSAGE } from "@/lib/content";
 import { browserClient } from "@/lib/supabase/browser";
 import { useAuth } from "@/store/auth";
+import { useCanPost } from "./useCanPost";
 
 export function LikeButton({ reviewId, slug, likes }: { reviewId: string; slug: string; likes: number }) {
   const user = useAuth((s) => s.user);
+  const canPost = useCanPost();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string>();
   const { data, mutate } = useSWR(user ? ["like", reviewId, user.id] : null, async ([, id, uid]) => {
@@ -30,9 +33,11 @@ export function LikeButton({ reviewId, slug, likes }: { reviewId: string; slug: 
 
   return (
     <div>
-      <button type="button" className="btn-ghost" disabled={pending} aria-pressed={liked} onClick={toggle}>
+      {/* Đã bấm thì luôn bỏ được, kể cả khi công tắc nội dung tắt. */}
+      <button type="button" className="btn-ghost" disabled={pending || (!liked && !canPost)} aria-pressed={liked} onClick={toggle}>
         {liked ? "♥" : "♡"} {count} Hữu ích
       </button>
+      {canPost === false && <p className="mt-2 text-sm text-fg2">{CONTENT_OFF_MESSAGE}</p>}
       {error && (
         <p role="alert" className="mt-2 text-sm text-crimson">
           {error}
