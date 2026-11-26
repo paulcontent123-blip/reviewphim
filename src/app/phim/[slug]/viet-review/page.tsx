@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { ReviewForm, type ReviewDraft } from "@/components/ReviewForm";
-import { canPostContent, CONTENT_OFF_MESSAGE } from "@/lib/content";
+import { canPostContent, CONTENT_OFF_MESSAGE, HIDDEN_NOTICE } from "@/lib/content";
 import { getFilm, usingSample } from "@/lib/data";
 import { currentUser, sessionClient } from "@/lib/supabase/server";
 
@@ -13,6 +13,7 @@ export default async function WriteReviewPage({ params }: { params: { slug: stri
   if (!film) notFound();
 
   let draft: ReviewDraft | null = null;
+  let hidden = false;
   if (!usingSample()) {
     // Kiểm tra trước khi bắt đăng nhập: công tắc tắt thì đăng nhập cũng không viết được.
     if (!(await canPostContent(sessionClient()))) {
@@ -27,11 +28,12 @@ export default async function WriteReviewPage({ params }: { params: { slug: stri
     if (!user) redirect(`/dang-nhap?next=${encodeURIComponent(`/phim/${film.slug}/viet-review`)}`);
     const { data } = await sessionClient()
       .from("reviews")
-      .select("score,title,content,spoiler,tags")
+      .select("score,title,content,spoiler,tags,status")
       .eq("film_id", film.id)
       .eq("author_id", user.id)
       .maybeSingle();
     draft = data;
+    hidden = data?.status === "hidden";
   }
 
   return (
@@ -39,7 +41,12 @@ export default async function WriteReviewPage({ params }: { params: { slug: stri
       <h1 className="mb-4 font-display text-2xl font-bold">
         {draft?.content ? "Sửa review" : "Viết review"}: {film.title}
       </h1>
-      <ReviewForm filmId={film.id} filmSlug={film.slug} draft={draft} />
+      {hidden && (
+        <p role="status" className="card mb-4 border-crimson p-4 text-sm text-fg2">
+          {HIDDEN_NOTICE}
+        </p>
+      )}
+      <ReviewForm filmId={film.id} filmSlug={film.slug} draft={draft} hidden={hidden} />
     </div>
   );
 }

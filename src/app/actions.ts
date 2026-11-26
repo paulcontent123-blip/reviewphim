@@ -10,6 +10,8 @@ import { isUuid } from "@/lib/text";
 export interface ActionState {
   error?: string;
   ok?: boolean;
+  /** Đã lưu nhưng bài đang bị ẩn. */
+  hidden?: boolean;
 }
 
 const NOT_READY: ActionState = { error: "Chưa nối Supabase nên chưa lưu được." };
@@ -23,18 +25,24 @@ const validSlug = (s: string) => /^[a-z0-9-]+$/.test(s);
 type ReviewValues = { score: number; title?: string; content?: string; spoiler?: boolean; tags?: string[] };
 
 /** Mỗi người một dòng mỗi phim: có rồi thì sửa, chưa có thì thêm. RLS kiểm tra quyền. */
-async function saveReview(filmId: string, values: ReviewValues): Promise<{ state: ActionState; slug: string | null }> {
+async function saveReview(
+  filmId: string,
+  values: ReviewValues,
+): Promise<{ state: ActionState; slug: string | null; hidden?: boolean }> {
   const db = sessionClient();
   const { data } = await db.auth.getUser();
   if (!data.user) return { state: SIGN_IN, slug: null };
   if (!(await canPostContent(db))) return { state: CONTENT_OFF, slug: null };
 
-  const updated = await db.from("reviews").update(values).eq("film_id", filmId).eq("author_id", data.user.id).select("slug");
+  const updated = await db.from("reviews").update(values).eq("film_id", filmId).eq("author_id", data.user.id).select("slug,status");
   if (updated.error) {
     console.error("saveReview update", updated.error.message);
     return { state: FAILED, slug: null };
   }
-  if (updated.data.length) return { state: { ok: true }, slug: updated.data[0].slug };
+  if (updated.data.length) {
+    const [row] = updated.data;
+    return { state: { ok: true }, slug: row.slug, hidden: row.status === "hidden" };
+  }
 
   const inserted = await db
     .from("reviews")
@@ -84,11 +92,13 @@ export async function submitReview(_prev: ActionState, form: FormData): Promise<
   if (content.length < 50 || content.length > 20000) return { error: "Nội dung dài từ 50 đến 20.000 ký tự." };
   if (tags.length > 5 || tags.some((t) => t.length > 30)) return { error: "Tối đa 5 tag, mỗi tag không quá 30 ký tự." };
 
-  const { state, slug } = await saveReview(filmId, { score, title, content, spoiler: form.get("spoiler") === "on", tags });
+  const { state, slug, hidden } = await saveReview(filmId, { score, title, content, spoiler: form.get("spoiler") === "on", tags });
   if (!state.ok) return state;
   if (!slug) return FAILED;
   refresh(text("film_slug"));
   revalidatePath(`/review/${slug}`);
+  // Trang bài viết chỉ lấy bài công khai, chuyển đến đó khi bài đang ẩn sẽ gặp 404.
+  if (hidden) return { ok: true, hidden: true };
   redirect(`/review/${slug}`);
 }
 

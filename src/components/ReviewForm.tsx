@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { submitReview } from "@/app/actions";
+import { HIDDEN_SAVED_MESSAGE } from "@/lib/content";
 import { Markdown } from "./Markdown";
 
 export interface ReviewDraft {
@@ -13,16 +14,18 @@ export interface ReviewDraft {
   tags: string[] | null;
 }
 
-function Submit() {
+function Submit({ hidden }: { hidden?: boolean }) {
   const { pending } = useFormStatus();
   return (
     <button type="submit" className="btn-gold" disabled={pending}>
-      {pending ? "Đang đăng..." : "Đăng review"}
+      {hidden ? (pending ? "Đang lưu..." : "Lưu thay đổi") : pending ? "Đang đăng..." : "Đăng review"}
     </button>
   );
 }
 
-export function ReviewForm({ filmId, filmSlug, draft }: { filmId: string; filmSlug: string; draft: ReviewDraft | null }) {
+type Props = { filmId: string; filmSlug: string; draft: ReviewDraft | null; hidden?: boolean };
+
+export function ReviewForm({ filmId, filmSlug, draft, hidden }: Props) {
   const [state, action] = useFormState(submitReview, {});
   const [content, setContent] = useState(draft?.content ?? "");
   const [preview, setPreview] = useState(false);
@@ -85,7 +88,12 @@ export function ReviewForm({ filmId, filmSlug, draft }: { filmId: string; filmSl
           {state.error}
         </p>
       )}
-      <Submit />
+      {state.hidden && (
+        <p role="status" className="text-sm text-[#1f6e36]">
+          {HIDDEN_SAVED_MESSAGE}
+        </p>
+      )}
+      <Submit hidden={hidden || state.hidden} />
     </form>
   );
 }

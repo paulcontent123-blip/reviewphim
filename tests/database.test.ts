@@ -155,6 +155,16 @@ describe("kiểm duyệt và tag", () => {
     expect(await mine()).toEqual([{ status: "hidden" }]);
   });
 
+  it("tác giả sửa được bài đang ẩn nhưng bài vẫn ẩn và không tính điểm", async () => {
+    const score = async () =>
+      (await db.query<{ site_score: string; vote_count: number }>("select site_score, vote_count from films where id = $1", [film])).rows[0];
+    const before = await score();
+    const edit = "update reviews set score = 1, title = 'Sửa bài đang ẩn' where author_id = $1 returning status";
+    expect(await user(C, edit, [C])).toEqual([{ status: "hidden" }]);
+    expect(await anon("select id from review_feed where title = 'Sửa bài đang ẩn'")).toEqual([]);
+    expect(await score()).toEqual(before);
+  });
+
   it("tác giả vẫn xóa được bài đang hiển thị của mình", async () => {
     await db.query("update reviews set status = 'published' where author_id = $1", [C]);
     expect(await user(C, "delete from reviews where author_id = $1 returning id", [C])).toHaveLength(1);
