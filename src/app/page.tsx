@@ -3,7 +3,7 @@ import { FilmRow } from "@/components/FilmRow";
 import { HeroBanner } from "@/components/HeroBanner";
 import { RankingSidebar } from "@/components/RankingSidebar";
 import { ReviewCard } from "@/components/ReviewCard";
-import { listFilms, listReviews } from "@/lib/data";
+import { hasWatchOptions, listFilms, listReviews } from "@/lib/data";
 import { GENRES } from "@/lib/genres";
 
 export const revalidate = 300;
@@ -17,11 +17,13 @@ export default async function HomePage() {
     listReviews({ limit: 4 }),
   ]);
   const hero = showing.find((f) => f.backdrop_url) ?? showing[0] ?? streaming[0] ?? soon[0];
+  const heroHasLinks = hero ? await hasWatchOptions(hero.id) : false;
 
   return (
     <div className="wrap">
-      {hero ? <HeroBanner film={hero} /> : <p className="card mb-8 p-6 text-sm text-fg2">Chưa có phim. Hãy chạy đồng bộ TMDB.</p>}
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px]">
+      {hero ? <HeroBanner film={hero} hasLinks={heroHasLinks} /> : <p className="card mb-8 p-6 text-sm text-fg2">Chưa có phim. Hãy chạy đồng bộ TMDB.</p>}
+      {/* Chưa phim nào có điểm thì không có Top 10, đừng chừa cột trống. */}
+      <div className={`grid gap-8 ${top.length ? "lg:grid-cols-[minmax(0,1fr)_300px]" : ""}`}>
         <div className="min-w-0">
           <FilmRow title="Đang chiếu rạp" films={showing} />
           <FilmRow title="Sắp chiếu" films={soon} />

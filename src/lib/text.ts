@@ -26,6 +26,12 @@ export function excerpt(markdown: string, max = 160): string {
   return cut.slice(0, Math.max(cut.lastIndexOf(" "), 1)) + "…";
 }
 
+/** Tên gốc của phim, chỉ trả về khi khác tên đang hiển thị (không tính hoa thường, khoảng trắng thừa). */
+export function otherTitle(title: string, original: string | null): string | null {
+  const key = (s: string) => s.normalize("NFC").replace(/\s+/g, " ").trim().toLowerCase();
+  return original && key(original) && key(original) !== key(title) ? original : null;
+}
+
 /** Chỉ cho phép quay về đường dẫn nội bộ sau đăng nhập. */
 export function safeNext(next: string | null | undefined): string {
   if (!next || !next.startsWith("/") || /^\/[/\\]/.test(next) || /[\u0000-\u001f\\]/.test(next)) return "/";

@@ -49,6 +49,13 @@ export const getFilm = cache(async (slug: string): Promise<FilmDetail | null> =>
   return { ...film, cast: unwrap<Actor[]>(cast), watch_options: unwrap<WatchOption[]>(options) };
 });
 
+/** Phim đã có link xem chưa, để không mời bấm vào ô trống. */
+export async function hasWatchOptions(filmId: string): Promise<boolean> {
+  if (usingSample()) return FILMS.some((f) => f.id === filmId && f.watch_options.length > 0);
+  const res = await publicClient().from("watch_options").select("id").eq("film_id", filmId).limit(1);
+  return unwrap<{ id: string }[]>(res).length > 0;
+}
+
 export async function getWatchOption(id: string): Promise<WatchOption | null> {
   if (usingSample()) return FILMS.flatMap((f) => f.watch_options).find((o) => o.id === id) ?? null;
   return unwrap<WatchOption | null>(

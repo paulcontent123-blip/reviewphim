@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActorChip } from "@/components/ActorChip";
@@ -11,7 +12,7 @@ import { WatchOptions } from "@/components/WatchOptions";
 import { getFilm, listReviews } from "@/lib/data";
 import { genreByName } from "@/lib/genres";
 import { movieJsonLd } from "@/lib/jsonld";
-import { excerpt, youtubeId } from "@/lib/text";
+import { excerpt, otherTitle, youtubeId } from "@/lib/text";
 
 export const revalidate = 300;
 export const generateStaticParams = () => [];
@@ -36,17 +37,25 @@ export default async function FilmPage({ params }: Props) {
   const reviews = await listReviews({ filmId: film.id, limit: 4 });
   const trailer = youtubeId(film.trailer_url);
   const episodes = film.total_episodes ?? 1;
+  const original = otherTitle(film.title, film.original_title);
 
   return (
     <div className="wrap">
       <JsonLd data={movieJsonLd(film, reviews)} />
-      <header className="mb-6 flex gap-4 rounded-2xl bg-[#14131a] p-4 text-white sm:gap-6 sm:p-6">
+      <header className="relative mb-6 flex gap-4 overflow-hidden rounded-2xl bg-[#14131a] p-4 text-white sm:gap-6 sm:p-6">
+        {/* Ảnh nền ẩn và tải trễ trên điện thoại, nên điện thoại không tải ảnh. */}
+        {film.backdrop_url && (
+          <>
+            <Image src={film.backdrop_url} alt="" fill loading="lazy" sizes="100vw" className="hidden object-cover opacity-40 sm:block" />
+            <div className="absolute inset-0 hidden bg-gradient-to-r from-black/80 via-black/60 to-black/20 sm:block" />
+          </>
+        )}
         <div className="relative aspect-[2/3] h-fit w-28 shrink-0 overflow-hidden rounded-lg sm:w-44">
           <Poster src={film.poster_url} title={film.title} priority />
         </div>
-        <div className="min-w-0">
+        <div className="relative min-w-0">
           <h1 className="font-display text-2xl font-bold sm:text-4xl">{film.title}</h1>
-          {film.original_title && <p className="mt-1 text-sm italic text-white/80">{film.original_title}</p>}
+          {original && <p className="mt-1 text-sm italic text-white/80">{original}</p>}
           <p className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
             {film.site_score !== null ? (
               <span className="text-lg font-bold text-amber-300">
@@ -69,9 +78,11 @@ export default async function FilmPage({ params }: Props) {
               );
             })}
           </div>
-          <a href="#xem-o-dau" className="btn mt-4 bg-amber-400 text-black">
-            Xem ở đâu
-          </a>
+          {film.watch_options.length > 0 && (
+            <a href="#xem-o-dau" className="btn mt-4 bg-amber-400 text-black">
+              Xem ở đâu
+            </a>
+          )}
         </div>
       </header>
 

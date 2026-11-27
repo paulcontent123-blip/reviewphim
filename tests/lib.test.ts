@@ -4,7 +4,7 @@ import { nameFormatError, nameSaveError, normalizeName } from "@/lib/display-nam
 import { movieJsonLd, reviewJsonLd, serializeJsonLd } from "@/lib/jsonld";
 import { FILMS, REVIEWS } from "@/lib/data/sample";
 import { fullReview } from "@/lib/premium";
-import { excerpt, safeNext, slugify, unaccent, youtubeId } from "@/lib/text";
+import { excerpt, otherTitle, safeNext, slugify, unaccent, youtubeId } from "@/lib/text";
 import { filmSlug, toCast, toFilm, withoutLocked } from "@/lib/tmdb";
 
 describe("text", () => {
@@ -162,4 +162,16 @@ describe("bài Premium", () => {
     expect(await fullReview(db({ can_read_review: ok(true), review_body: failed }), "a")).toBeNull();
     expect(await fullReview(db({ can_read_review: ok(true), review_body: ok(null) }), "a")).toBeNull();
   });
+});
+
+describe("tên gốc của phim", () => {
+  it("hiện khi khác tên phim", () => expect(otherTitle("Bố Già", "Dad, I'm Sorry")).toBe("Dad, I'm Sorry"));
+  it.each([
+    ["Án Mạng Karaoke", "Án Mạng Karaoke"],
+    ["Án Mạng Karaoke", "  án mạng   KARAOKE "],
+    ["Bố Già", "Bo\u0302\u0301 Gia\u0300"],
+    ["Wildwood", null],
+    ["Wildwood", ""],
+    ["Wildwood", "   "],
+  ])("ẩn khi trùng hoặc trống: %s / %s", (title, original) => expect(otherTitle(title, original)).toBeNull());
 });
