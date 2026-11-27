@@ -1,10 +1,15 @@
 import Image from "next/image";
 
-export function Poster({ src, title, priority }: { src: string | null; title: string; priority?: boolean }) {
+type Props = { src: string | null; title: string; priority?: boolean; compact?: boolean };
+
+/** compact: khung hẹp như ảnh nhỏ trên thẻ review, chữ nhỏ hơn và cắt dòng. */
+export function Poster({ src, title, priority, compact }: Props) {
   if (!src) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-bg4 to-[#cfc7b8] p-3 text-center font-display text-sm font-bold text-fg2">
-        {title}
+      <div
+        className={`flex h-full w-full items-center justify-center bg-gradient-to-br from-bg4 to-[#cfc7b8] text-center font-display font-bold text-fg2 ${compact ? "p-1 text-xs leading-tight" : "p-3 text-sm"}`}
+      >
+        <span className={compact ? "line-clamp-4 break-words" : undefined}>{title}</span>
       </div>
     );
   }

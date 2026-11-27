@@ -4,7 +4,7 @@ import { nameFormatError, nameSaveError, normalizeName } from "@/lib/display-nam
 import { movieJsonLd, reviewJsonLd, serializeJsonLd } from "@/lib/jsonld";
 import { FILMS, REVIEWS } from "@/lib/data/sample";
 import { fullReview } from "@/lib/premium";
-import { excerpt, otherTitle, safeNext, slugify, unaccent, youtubeId } from "@/lib/text";
+import { excerpt, otherTitle, safeNext, slugify, smallPoster, starFill, unaccent, youtubeId } from "@/lib/text";
 import { filmSlug, toCast, toFilm, withoutLocked } from "@/lib/tmdb";
 
 describe("text", () => {
@@ -174,4 +174,21 @@ describe("tên gốc của phim", () => {
     ["Wildwood", ""],
     ["Wildwood", "   "],
   ])("ẩn khi trùng hoặc trống: %s / %s", (title, original) => expect(otherTitle(title, original)).toBeNull());
+});
+
+describe("ảnh nhỏ và sao", () => {
+  it("đổi ảnh TMDB sang cỡ nhỏ, ảnh nguồn khác giữ nguyên", () => {
+    expect(smallPoster("https://image.tmdb.org/t/p/w500/abc.jpg")).toBe("https://image.tmdb.org/t/p/w185/abc.jpg");
+    expect(smallPoster("https://example.com/t/w500.jpg")).toBe("https://example.com/t/w500.jpg");
+    expect(smallPoster(null)).toBeNull();
+  });
+  it.each([
+    [10, 100],
+    [7, 70],
+    [8.6, 86],
+    [1, 10],
+    [0, 0],
+    [12, 100],
+    [-1, 0],
+  ])("điểm %s tô %s phần trăm", (score, percent) => expect(starFill(score)).toBeCloseTo(percent));
 });

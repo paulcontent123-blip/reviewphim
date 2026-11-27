@@ -45,6 +45,12 @@ export function LoginForm({ next }: { next: string }) {
       if (error) throw error;
     });
 
+  const choose = (toSignUp: boolean) => {
+    setSignUp(toSignUp);
+    setError(undefined);
+    setNotice(undefined);
+  };
+
   const submit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
@@ -67,6 +73,19 @@ export function LoginForm({ next }: { next: string }) {
   return (
     <div className="card mx-auto max-w-md p-5 sm:p-8">
       <h1 className="font-display text-2xl font-bold">{signUp ? "Tạo tài khoản" : "Đăng nhập"}</h1>
+      <div role="group" aria-label="Chọn đăng nhập hoặc đăng ký" className="mt-4 grid grid-cols-2 gap-1 rounded-lg bg-bg3 p-1">
+        {[false, true].map((option) => (
+          <button
+            key={String(option)}
+            type="button"
+            aria-pressed={signUp === option}
+            onClick={() => choose(option)}
+            className={`min-h-[44px] rounded-md text-sm font-semibold ${signUp === option ? "bg-bg2 text-goldtext shadow-sm" : "text-fg2"}`}
+          >
+            {option ? "Đăng ký" : "Đăng nhập"}
+          </button>
+        ))}
+      </div>
       <button type="button" disabled={busy} className="btn-ghost mt-5 w-full" onClick={google}>
         Tiếp tục với Google
       </button>
@@ -102,9 +121,6 @@ export function LoginForm({ next }: { next: string }) {
           {signUp ? "Đăng ký" : "Đăng nhập"}
         </button>
       </form>
-      <button type="button" className="mt-4 min-h-[44px] w-full text-sm text-blue underline" onClick={() => setSignUp(!signUp)}>
-        {signUp ? "Đã có tài khoản? Đăng nhập" : "Chưa có tài khoản? Đăng ký"}
-      </button>
     </div>
   );
 }

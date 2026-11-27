@@ -8,6 +8,7 @@ import { JsonLd } from "@/components/JsonLd";
 import { Poster } from "@/components/Poster";
 import { RatingWidget } from "@/components/RatingWidget";
 import { ReviewCard } from "@/components/ReviewCard";
+import { ScoreSummary } from "@/components/ScoreSummary";
 import { WatchOptions } from "@/components/WatchOptions";
 import { getFilm, listReviews } from "@/lib/data";
 import { genreByName } from "@/lib/genres";
@@ -78,10 +79,19 @@ export default async function FilmPage({ params }: Props) {
               );
             })}
           </div>
-          {film.watch_options.length > 0 && (
-            <a href="#xem-o-dau" className="btn mt-4 bg-amber-400 text-black">
-              Xem ở đâu
-            </a>
+          {(film.watch_options.length > 0 || trailer) && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {film.watch_options.length > 0 && (
+                <a href="#xem-o-dau" className="btn bg-amber-400 text-black">
+                  Xem ở đâu
+                </a>
+              )}
+              {trailer && (
+                <a href="#trailer" className="btn border border-white/40 text-white">
+                  Trailer
+                </a>
+              )}
+            </div>
           )}
         </div>
       </header>
@@ -111,7 +121,7 @@ export default async function FilmPage({ params }: Props) {
             </section>
           )}
           {trailer && (
-            <section>
+            <section id="trailer" className="scroll-mt-32">
               <h2 className="sec-title mb-3">Trailer</h2>
               <iframe
                 className="aspect-video w-full rounded-xl"
@@ -133,6 +143,9 @@ export default async function FilmPage({ params }: Props) {
                 </Link>
               )}
             </div>
+            {film.site_score !== null && film.vote_count > 0 && (
+              <ScoreSummary filmSlug={film.slug} score={film.site_score} count={film.vote_count} />
+            )}
             {reviews.length ? (
               <div className="grid gap-4 sm:grid-cols-2">
                 {reviews.map((r) => (

@@ -32,6 +32,12 @@ export function otherTitle(title: string, original: string | null): string | nul
   return original && key(original) && key(original) !== key(title) ? original : null;
 }
 
+/** Ảnh poster TMDB cỡ nhỏ cho chỗ hiển thị hẹp; ảnh nguồn khác giữ nguyên. */
+export const smallPoster = (url: string | null) => url?.replace("/t/p/w500/", "/t/p/w185/") ?? null;
+
+/** Phần trăm hàng 5 sao được tô theo điểm thang 10. */
+export const starFill = (score: number) => Math.min(Math.max(score * 10, 0), 100);
+
 /** Chỉ cho phép quay về đường dẫn nội bộ sau đăng nhập. */
 export function safeNext(next: string | null | undefined): string {
   if (!next || !next.startsWith("/") || /^\/[/\\]/.test(next) || /[\u0000-\u001f\\]/.test(next)) return "/";
