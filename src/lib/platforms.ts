@@ -10,7 +10,7 @@ export const PLATFORMS: Record<Platform, { name: string; color: string; order: n
   other: { name: "Nền tảng khác", color: "#5A5650", order: 5 },
 };
 
-const TYPES = { subscription: "Thuê bao", rent: "Thuê lẻ", buy: "Mua", free: "Miễn phí" } as const;
+export const TYPES = { subscription: "Thuê bao", rent: "Thuê lẻ", buy: "Mua", free: "Miễn phí" } as const;
 
 export const sortOptions = (o: WatchOption[]) =>
   [...o].sort((a, b) => PLATFORMS[a.platform].order - PLATFORMS[b.platform].order);

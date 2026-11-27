@@ -36,7 +36,7 @@ const name = (uid: string, value: string) => db.query("update profiles set displ
 beforeAll(async () => {
   db = new PGlite();
   await db.exec(SUPABASE_STUB);
-  for (const f of ["0001_techspec", "0002_phase1", "0003_review_moderation", "0004_content_switch", "0005_display_name", "0006_premium"]) {
+  for (const f of ["0001_techspec", "0002_phase1", "0003_review_moderation", "0004_content_switch", "0005_display_name", "0006_premium", "0007_admin"]) {
     await db.exec(readFileSync(`supabase/migrations/${f}.sql`, "utf8"));
   }
   await db.query("insert into auth.users values ($1), ($2)", [A, B]);
@@ -559,6 +559,109 @@ describe("gói Premium", () => {
     await settings(true, 2);
     expect(await bodies("anon", null)).toEqual(["đọc", "đọc"]);
     await db.query("update reviews set status = 'published' where id = $1", [ids[SECOND]]);
+  });
+});
+
+describe("quản trị", () => {
+  const ADMIN = "31000000-0000-4000-8000-000000000000";
+  const WRITER = "32000000-0000-4000-8000-000000000000";
+  const BODY = LONG.repeat(3);
+  let adminFilm: string;
+  let review: string;
+
+  const add = "insert into watch_options (film_id, platform, url, type, quality, label) values ($1, $2, $3, $4, $5, $6) returning id";
+  const link = (over: Partial<Record<"platform" | "url" | "label", string>> = {}) => [
+    adminFilm,
+    over.platform ?? "vieon",
+    over.url ?? "https://example.com/xem",
+    "free",
+    "HD",
+    over.label ?? "Vietsub",
+  ];
+  const links = async () =>
+    (await db.query<{ url: string }>("select url from watch_options where film_id = $1 order by url", [adminFilm])).rows.map((r) => r.url);
+  const list = (uid: string, status = "published") => user(uid, "select * from admin_reviews($1)", [status]);
+  const setStatus = (uid: string, id: string, status: string) =>
+    user(uid, "select * from set_review_status($1, $2)", [id, status]);
+
+  beforeAll(async () => {
+    const f = await db.query<{ id: string }>("insert into films (slug, title) values ('phim-quan-tri', 'Phim Quản Trị') returning id");
+    adminFilm = f.rows[0].id;
+    await db.query("insert into auth.users values ($1), ($2)", [ADMIN, WRITER]);
+    await name(WRITER, "Người Viết T21");
+    await db.query("update profiles set role = 'admin' where id = $1", [ADMIN]);
+    const [row] = await user(
+      WRITER,
+      "insert into reviews (film_id, author_id, score, title, content) values ($1, $2, 8, 'Bài cần duyệt', $3) returning id",
+      [adminFilm, WRITER, BODY],
+    );
+    review = row.id as string;
+  });
+  afterAll(async () => {
+    await db.query("delete from auth.users where id in ($1, $2)", [ADMIN, WRITER]);
+    await db.query("delete from films where id = $1", [adminFilm]);
+  });
+
+  it("khách và người thường không thêm, sửa, xóa được link", async () => {
+    await db.query("insert into watch_options (film_id, platform, url) values ($1, 'cgv', 'https://cgv.example/ve')", [adminFilm]);
+    await expect(anon(add, link())).rejects.toThrow(/permission denied/);
+    await expect(user(WRITER, add, link())).rejects.toThrow(/row-level security/);
+    expect(await user(WRITER, "update watch_options set url = 'https://xau.example' where film_id = $1 returning id", [adminFilm])).toEqual([]);
+    expect(await user(WRITER, "delete from watch_options where film_id = $1 returning id", [adminFilm])).toEqual([]);
+    expect(await links()).toEqual(["https://cgv.example/ve"]);
+  });
+
+  it("admin thêm, sửa, xóa được link", async () => {
+    const [{ id }] = (await user(ADMIN, add, link())) as { id: string }[];
+    expect(await user(ADMIN, "update watch_options set url = 'https://example.com/moi' where id = $1 returning id", [id])).toHaveLength(1);
+    expect(await links()).toContain("https://example.com/moi");
+    expect(await user(ADMIN, "delete from watch_options where id = $1 returning id", [id])).toHaveLength(1);
+    expect(await links()).not.toContain("https://example.com/moi");
+  });
+
+  it("admin cũng không chuyển link sang phim khác", async () => {
+    await expect(user(ADMIN, "update watch_options set film_id = $1", [film])).rejects.toThrow(/permission denied/);
+  });
+
+  it.each([
+    ["địa chỉ http", { url: "http://example.com" }, /watch_options_url_https/],
+    ["địa chỉ quá dài", { url: "https://example.com/" + "a".repeat(2000) }, /watch_options_url_len/],
+    ["ghi chú quá dài", { label: "a".repeat(61) }, /watch_options_label_len/],
+    ["nền tảng lạ", { platform: "lau" }, /watch_options_platform/],
+  ] as const)("từ chối %s", async (_name, over, message) => {
+    await expect(user(ADMIN, add, link(over))).rejects.toThrow(message);
+  });
+
+  it("chỉ admin xem được danh sách bài để duyệt, kèm nội dung", async () => {
+    await expect(anon("select * from admin_reviews('published')")).rejects.toThrow(/permission denied/);
+    await expect(list(WRITER)).rejects.toThrow(/admin_only/);
+    const rows = (await list(ADMIN)).filter((r) => r.id === review);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ content: BODY, film_slug: "phim-quan-tri", author_name: "Người Viết T21", status: "published" });
+  });
+
+  it("người thường và tác giả không đổi được trạng thái bài", async () => {
+    await expect(setStatus(WRITER, review, "hidden")).rejects.toThrow(/admin_only/);
+    await expect(anon("select * from set_review_status($1, 'hidden')", [review])).rejects.toThrow(/permission denied/);
+    await expect(user(WRITER, "update reviews set status = 'hidden' where id = $1", [review])).rejects.toThrow(/permission denied/);
+  });
+
+  it("ẩn bài thì rời trang công khai, điểm phim tính lại; hiện lại được", async () => {
+    const score = async () =>
+      (await db.query<{ site_score: string | null; vote_count: number }>("select site_score, vote_count from films where id = $1", [adminFilm])).rows[0];
+    expect((await score()).vote_count).toBe(1);
+    expect(await setStatus(ADMIN, review, "hidden")).toEqual([{ review_slug: expect.stringMatching(/^phim-quan-tri-/), film_slug: "phim-quan-tri" }]);
+    expect(await anon("select id from review_feed where film_id = $1", [adminFilm])).toEqual([]);
+    expect(await score()).toEqual({ site_score: null, vote_count: 0 });
+    expect((await list(ADMIN, "hidden")).map((r) => r.id)).toContain(review);
+    await setStatus(ADMIN, review, "published");
+    expect(await anon("select id from review_feed where film_id = $1", [adminFilm])).toHaveLength(1);
+    expect((await score()).vote_count).toBe(1);
+  });
+
+  it("báo lỗi khi trạng thái sai hoặc không có bài", async () => {
+    await expect(setStatus(ADMIN, review, "xoa")).rejects.toThrow(/reviews_status_check/);
+    await expect(setStatus(ADMIN, "00000000-0000-4000-8000-000000000000", "hidden")).rejects.toThrow(/review_not_found/);
   });
 });
 

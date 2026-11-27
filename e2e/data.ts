@@ -2,7 +2,7 @@
 import { randomUUID } from "node:crypto";
 
 const FILM_SLUG = /^e2e-[0-9a-f]{8}$/;
-const USER_EMAIL = /^e2e-[0-9a-f]{8}@example\.com$/;
+const USER_EMAIL = /^e2e-[0-9a-f]{8}(-admin)?@example\.com$/;
 const STALE_MS = 60 * 60 * 1000;
 
 export interface TestData {
@@ -13,6 +13,9 @@ export interface TestData {
   filmSlug: string;
   optionId: string;
   watchUrl: string;
+  runId: string;
+  /** Tài khoản admin tạm, xóa cùng lần chạy. */
+  admin: { id: string; email: string; password: string };
 }
 
 function env(name: string): string {
@@ -92,7 +95,29 @@ export async function createTestData(runId: string): Promise<TestData> {
     url: watchUrl,
     type: "free",
   });
-  return { email, password, userId: user.id, filmId: film.id, filmSlug, optionId: option.id, watchUrl };
+  const admin = await createAdmin(runId);
+  return { email, password, userId: user.id, filmId: film.id, filmSlug, optionId: option.id, watchUrl, runId, admin };
+}
+
+async function createAdmin(runId: string) {
+  const email = `e2e-${runId}-admin@example.com`;
+  const password = randomUUID();
+  const { id } = await call<{ id: string }>("POST", "/auth/v1/admin/users", { email, password, email_confirm: true });
+  await call("PATCH", `/rest/v1/profiles?id=eq.${id}&select=id`, { role: "admin", display_name: `E2E Admin ${runId}` });
+  return { id, email, password };
+}
+
+/** Bài review tạo sẵn bằng khóa secret, trả về slug. */
+export async function seedReview(authorId: string, filmId: string, title: string): Promise<string> {
+  const content = "Bài do test tự động tạo để thử ẩn và hiện lại, đủ dài hơn năm mươi ký tự.";
+  const [review] = await call<{ slug: string }[]>("POST", "/rest/v1/reviews?select=slug", {
+    film_id: filmId,
+    author_id: authorId,
+    score: 7,
+    title,
+    content,
+  });
+  return review.slug;
 }
 
 /** Dữ liệu do global-setup tạo, truyền sang tiến trình chạy test qua biến môi trường. */

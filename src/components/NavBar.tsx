@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AccountButton } from "./AccountButton";
+import { AdminLink } from "./AdminLink";
 
 export function NavBar() {
   return (
@@ -15,9 +16,13 @@ export function NavBar() {
         <div className="ml-auto sm:order-3 sm:ml-0">
           <AccountButton />
         </div>
-        <form action="/tim-kiem" role="search" className="order-last w-full pb-1.5 sm:order-2 sm:ml-auto sm:w-64 sm:pb-0">
-          <input name="q" type="search" required maxLength={80} placeholder="Tìm phim..." aria-label="Tìm phim" className="field rounded-full" />
-        </form>
+        {/* Link quản trị nằm cùng hàng ô tìm kiếm để thanh đầu không chật trên điện thoại. */}
+        <div className="order-last flex w-full items-center gap-2 pb-1.5 sm:order-2 sm:ml-auto sm:w-auto sm:pb-0">
+          <form action="/tim-kiem" role="search" className="flex-1 sm:w-64 sm:flex-none">
+            <input name="q" type="search" required maxLength={80} placeholder="Tìm phim..." aria-label="Tìm phim" className="field rounded-full" />
+          </form>
+          <AdminLink />
+        </div>
       </nav>
     </header>
   );
