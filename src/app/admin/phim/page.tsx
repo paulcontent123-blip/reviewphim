@@ -3,11 +3,12 @@ import { adminFilms, PAGE_SIZE, requireAdmin } from "@/lib/data/admin";
 
 type Search = { q?: string; thieu?: string; trang?: string };
 
-export default async function AdminFilmsPage({ searchParams }: { searchParams: Search }) {
+export default async function AdminFilmsPage({ searchParams }: { searchParams: Promise<Search> }) {
   await requireAdmin("/admin/phim");
-  const q = String(searchParams.q ?? "").trim().slice(0, 80);
-  const missing = searchParams.thieu === "1";
-  const page = Math.max(Math.trunc(Number(searchParams.trang)) || 1, 1);
+  const search = await searchParams;
+  const q = String(search.q ?? "").trim().slice(0, 80);
+  const missing = search.thieu === "1";
+  const page = Math.max(Math.trunc(Number(search.trang)) || 1, 1);
   const { films, total } = await adminFilms({ q, missing, page: page - 1 });
 
   const href = (to: number) => {

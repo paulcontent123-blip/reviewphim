@@ -33,7 +33,7 @@ async function saveDisplayName(raw: string): Promise<ActionState> {
   const name = normalizeName(raw);
   const invalid = nameFormatError(name);
   if (invalid) return { error: invalid };
-  const db = sessionClient();
+  const db = await sessionClient();
   const { data } = await db.auth.getUser();
   if (!data.user) return SIGN_IN;
   const { error } = await db.from("profiles").update({ display_name: name }).eq("id", data.user.id);
@@ -53,7 +53,7 @@ async function saveReview(
   filmId: string,
   values: ReviewValues,
 ): Promise<{ state: ActionState; slug: string | null; hidden?: boolean }> {
-  const db = sessionClient();
+  const db = await sessionClient();
   const { data } = await db.auth.getUser();
   if (!data.user) return { state: SIGN_IN, slug: null };
   if (!(await canPostContent(db))) return { state: CONTENT_OFF, slug: null };
@@ -135,7 +135,7 @@ export async function submitReview(_prev: ActionState, form: FormData): Promise<
 export async function toggleLike(reviewId: string, reviewSlug: string, like: boolean): Promise<ActionState> {
   if (!hasSupabase) return NOT_READY;
   if (!isUuid(reviewId)) return FAILED;
-  const db = sessionClient();
+  const db = await sessionClient();
   const { data } = await db.auth.getUser();
   if (!data.user) return SIGN_IN;
   // Bỏ "Hữu ích" vẫn được khi công tắc tắt.

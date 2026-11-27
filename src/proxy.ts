@@ -2,8 +2,8 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { hasSupabase, supabaseAnonKey, supabaseUrl } from "@/lib/env";
 
-/** Làm mới phiên Supabase. Quyền truy cập do RLS và từng trang kiểm tra, không dựa vào middleware. */
-export async function middleware(request: NextRequest) {
+/** Làm mới phiên Supabase. Quyền truy cập do RLS và từng trang kiểm tra, không dựa vào proxy. */
+export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
   const signedIn = request.cookies.getAll().some((c) => c.name.startsWith("sb-"));
   if (!hasSupabase || !signedIn) return response;
@@ -22,4 +22,4 @@ export async function middleware(request: NextRequest) {
   return response;
 }
 
-export const config = { matcher: ["/phim/:path*", "/review/:path*", "/go/:path*", "/dang-nhap"] };
+export const config = { matcher: ["/phim/:path*", "/review/:path*", "/go/:path*", "/dang-nhap", "/admin/:path*"] };

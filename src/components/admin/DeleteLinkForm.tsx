@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState, useState } from "react";
+import { useFormStatus } from "react-dom";
 import { deleteLink } from "@/app/admin/actions";
 
 function Confirm() {
@@ -15,7 +15,7 @@ function Confirm() {
 
 /** Xóa hai bước: không khôi phục được nên cần xác nhận. */
 export function DeleteLinkForm({ optionId, filmSlug }: { optionId: string; filmSlug: string }) {
-  const [state, action] = useFormState(deleteLink, {});
+  const [state, action] = useActionState(deleteLink, {});
   const [asking, setAsking] = useState(false);
   return (
     <form action={action} className="mt-3 flex flex-wrap items-center gap-3 border-t border-line pt-3">

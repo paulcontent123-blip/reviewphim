@@ -28,7 +28,7 @@ export async function saveLink(_prev: ActionState, form: FormData): Promise<Acti
   const optionId = text(form, "option_id");
   if (!isUuid(filmId) || (optionId && !isUuid(optionId))) return { error: "Không tìm thấy phim." };
 
-  const table = sessionClient().from("watch_options");
+  const table = (await sessionClient()).from("watch_options");
   const { data, error } = optionId
     ? await table.update(parsed.values).eq("id", optionId).select("id")
     : await table.insert({ film_id: filmId, ...parsed.values }).select("id");
@@ -46,7 +46,7 @@ export async function deleteLink(_prev: ActionState, form: FormData): Promise<Ac
   if (!hasSupabase) return NOT_READY;
   const optionId = text(form, "option_id");
   if (!isUuid(optionId)) return { error: "Không tìm thấy link." };
-  const { data, error } = await sessionClient().from("watch_options").delete().eq("id", optionId).select("id");
+  const { data, error } = await (await sessionClient()).from("watch_options").delete().eq("id", optionId).select("id");
   if (error) {
     console.error("deleteLink", error.message);
     return { error: adminError(error) };
@@ -61,7 +61,7 @@ export async function setReviewStatus(_prev: ActionState, form: FormData): Promi
   const target = text(form, "review_id");
   const status = text(form, "status");
   if (!isUuid(target) || (status !== "hidden" && status !== "published")) return { error: "Yêu cầu không hợp lệ." };
-  const { data, error } = await sessionClient().rpc("set_review_status", { target, new_status: status });
+  const { data, error } = await (await sessionClient()).rpc("set_review_status", { target, new_status: status });
   if (error) {
     console.error("setReviewStatus", error.message);
     return { error: adminError(error) };

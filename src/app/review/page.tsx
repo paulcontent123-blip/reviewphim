@@ -19,9 +19,10 @@ function href(genre?: string, score?: number) {
   return p.size ? `/review?${p}` : "/review";
 }
 
-export default async function ReviewsPage({ searchParams }: { searchParams: { "the-loai"?: string; diem?: string } }) {
-  const genre = genreBySlug(String(searchParams["the-loai"] ?? ""));
-  const min = SCORES.find((s) => String(s) === searchParams.diem) ?? 0;
+export default async function ReviewsPage({ searchParams }: { searchParams: Promise<{ "the-loai"?: string; diem?: string }> }) {
+  const search = await searchParams;
+  const genre = genreBySlug(String(search["the-loai"] ?? ""));
+  const min = SCORES.find((s) => String(s) === search.diem) ?? 0;
   const reviews = await listReviews({ genre: genre?.name, minScore: min || undefined, limit: 40 });
 
   return (

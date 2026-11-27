@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useFormState, useFormStatus } from "react-dom";
+import { startTransition, useActionState, useState, type FormEvent } from "react";
 import { submitReview } from "@/app/actions";
 import { HIDDEN_SAVED_MESSAGE } from "@/lib/content";
 import { NAME_MAX, NAME_MIN } from "@/lib/display-name";
@@ -15,8 +14,7 @@ export interface ReviewDraft {
   tags: string[] | null;
 }
 
-function Submit({ hidden }: { hidden?: boolean }) {
-  const { pending } = useFormStatus();
+function Submit({ hidden, pending }: { hidden?: boolean; pending: boolean }) {
   return (
     <button type="submit" className="btn-gold" disabled={pending}>
       {hidden ? (pending ? "Đang lưu..." : "Lưu thay đổi") : pending ? "Đang đăng..." : "Đăng review"}
@@ -27,12 +25,20 @@ function Submit({ hidden }: { hidden?: boolean }) {
 type Props = { filmId: string; filmSlug: string; draft: ReviewDraft | null; hidden?: boolean; askName?: boolean };
 
 export function ReviewForm({ filmId, filmSlug, draft, hidden, askName }: Props) {
-  const [state, action] = useFormState(submitReview, {});
+  const [state, action, pending] = useActionState(submitReview, {});
   const [content, setContent] = useState(draft?.content ?? "");
   const [preview, setPreview] = useState(false);
 
+  // React 19 tự xóa form sau khi chạy action, kể cả khi lỗi. Gửi qua onSubmit để giữ dữ liệu đã nhập;
+  // vẫn đặt action để form gửi được khi trang chưa tải xong script.
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    startTransition(() => action(data));
+  }
+
   return (
-    <form action={action} className="space-y-4">
+    <form action={action} onSubmit={submit} className="space-y-4">
       <input type="hidden" name="film_id" value={filmId} />
       <input type="hidden" name="film_slug" value={filmSlug} />
       {askName && (
@@ -114,7 +120,7 @@ export function ReviewForm({ filmId, filmSlug, draft, hidden, askName }: Props) 
           {HIDDEN_SAVED_MESSAGE}
         </p>
       )}
-      <Submit hidden={hidden || state.hidden} />
+      <Submit hidden={hidden || state.hidden} pending={pending} />
     </form>
   );
 }

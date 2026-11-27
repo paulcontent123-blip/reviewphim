@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, useSyncExternalStore, type FormEvent } from "react";
 import { browserClient } from "@/lib/supabase/browser";
 
 const MESSAGES: Record<string, string> = {
@@ -12,14 +12,20 @@ const MESSAGES: Record<string, string> = {
 
 type Db = NonNullable<ReturnType<typeof browserClient>>;
 
+/** Không có gì để theo dõi: chỉ cần biết đang chạy trên máy chủ hay đã chạy trong trình duyệt. */
+const noSubscribe = () => () => {};
+
 export function LoginForm({ next }: { next: string }) {
   const [signUp, setSignUp] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
   const [notice, setNotice] = useState<string>();
   // false trong HTML từ máy chủ: JavaScript chưa chạy thì trình duyệt sẽ tự gửi form, lộ mật khẩu.
-  const [ready, setReady] = useState(false);
-  useEffect(() => setReady(true), []);
+  const ready = useSyncExternalStore(
+    noSubscribe,
+    () => true,
+    () => false,
+  );
 
   const run = async (task: (db: Db, callback: string) => Promise<void>) => {
     setError(undefined);

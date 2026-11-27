@@ -7,8 +7,9 @@ import { isUuid } from "@/lib/text";
 export const dynamic = "force-dynamic";
 
 /** Ghi lượt click rồi chuyển sang link affiliate. Lỗi ghi không được chặn người dùng. */
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  const option = isUuid(params.id) ? await getWatchOption(params.id) : null;
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const option = isUuid(id) ? await getWatchOption(id) : null;
   if (!option) return new NextResponse("Không tìm thấy liên kết.", { status: 404 });
 
   try {

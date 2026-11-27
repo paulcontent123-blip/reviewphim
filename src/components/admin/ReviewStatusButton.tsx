@@ -1,6 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import { setReviewStatus } from "@/app/admin/actions";
 
 function Submit({ hidden }: { hidden: boolean }) {
@@ -13,7 +14,7 @@ function Submit({ hidden }: { hidden: boolean }) {
 }
 
 export function ReviewStatusButton({ reviewId, hidden }: { reviewId: string; hidden: boolean }) {
-  const [state, action] = useFormState(setReviewStatus, {});
+  const [state, action] = useActionState(setReviewStatus, {});
   return (
     <form action={action} className="flex flex-wrap items-center gap-3">
       <input type="hidden" name="review_id" value={reviewId} />

@@ -1,8 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Image Optimizer của Next 14 có lỗ hổng không còn được vá (GHSA-2xp9-vwfh-vxw4, GHSA-2464-fhr4-w9xw).
-  // Giữ unoptimized cho tới khi nâng Next. Ảnh TMDB đã có sẵn nhiều kích thước.
+  // Chưa bật tối ưu ảnh: ảnh TMDB đã có sẵn nhiều kích thước, bật lên tốn hạn mức Vercel. Xét riêng sau.
   images: { unoptimized: true },
+  // Không để next dev tự tạo AGENTS.md ở gốc dự án.
+  agentRules: false,
   async headers() {
     return [
       {

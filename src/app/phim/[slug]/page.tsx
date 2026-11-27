@@ -18,10 +18,10 @@ import { excerpt, otherTitle, youtubeId } from "@/lib/text";
 export const revalidate = 300;
 export const generateStaticParams = () => [];
 
-type Props = { params: { slug: string } };
+type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const film = await getFilm(params.slug);
+  const film = await getFilm((await params).slug);
   if (!film) return { title: "Không tìm thấy phim" };
   const title = `${film.title} - Review & Đánh giá`;
   return {
@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function FilmPage({ params }: Props) {
-  const film = await getFilm(params.slug);
+  const film = await getFilm((await params).slug);
   if (!film) notFound();
   const reviews = await listReviews({ filmId: film.id, limit: 4 });
   const trailer = youtubeId(film.trailer_url);

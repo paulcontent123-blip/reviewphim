@@ -14,10 +14,10 @@ import { excerpt, formatDate } from "@/lib/text";
 export const revalidate = 300;
 export const generateStaticParams = () => [];
 
-type Props = { params: { slug: string } };
+type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const r = await getReview(params.slug);
+  const r = await getReview((await params).slug);
   if (!r) return { title: "Không tìm thấy review" };
   return {
     title: r.title,
@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ReviewPage({ params }: Props) {
-  const review = await getReview(params.slug);
+  const review = await getReview((await params).slug);
   if (!review) notFound();
   const film = await getFilm(review.film_slug);
   const body = <Markdown text={review.content} />;

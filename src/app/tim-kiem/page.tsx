@@ -4,8 +4,9 @@ import { listFilms } from "@/lib/data";
 
 export const metadata: Metadata = { title: "Tìm phim", robots: { index: false } };
 
-export default async function SearchPage({ searchParams }: { searchParams: { q?: string | string[] } }) {
-  const raw = Array.isArray(searchParams.q) ? searchParams.q[0] : searchParams.q;
+export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string | string[] }> }) {
+  const { q: input } = await searchParams;
+  const raw = Array.isArray(input) ? input[0] : input;
   const q = (raw ?? "").trim().slice(0, 80);
   const films = q ? await listFilms({ q, limit: 60 }) : [];
   return (

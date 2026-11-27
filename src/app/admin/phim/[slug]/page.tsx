@@ -5,9 +5,10 @@ import { LinkForm } from "@/components/admin/LinkForm";
 import { adminFilm, requireAdmin } from "@/lib/data/admin";
 import { PLATFORMS, sortOptions } from "@/lib/platforms";
 
-export default async function AdminFilmPage({ params }: { params: { slug: string } }) {
-  await requireAdmin(`/admin/phim/${params.slug}`);
-  const film = await adminFilm(params.slug);
+export default async function AdminFilmPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  await requireAdmin(`/admin/phim/${slug}`);
+  const film = await adminFilm(slug);
   if (!film) notFound();
   const options = sortOptions(film.watch_options);
 

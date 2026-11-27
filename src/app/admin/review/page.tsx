@@ -6,10 +6,11 @@ import { formatDate } from "@/lib/text";
 
 type Search = { "trang-thai"?: string; trang?: string };
 
-export default async function AdminReviewsPage({ searchParams }: { searchParams: Search }) {
+export default async function AdminReviewsPage({ searchParams }: { searchParams: Promise<Search> }) {
   await requireAdmin("/admin/review");
-  const hidden = searchParams["trang-thai"] === "an";
-  const page = Math.max(Math.trunc(Number(searchParams.trang)) || 1, 1);
+  const search = await searchParams;
+  const hidden = search["trang-thai"] === "an";
+  const page = Math.max(Math.trunc(Number(search.trang)) || 1, 1);
   const { reviews, hasNext } = await adminReviews(hidden ? "hidden" : "published", page - 1);
 
   const href = (toHidden: boolean, to = 1) => {

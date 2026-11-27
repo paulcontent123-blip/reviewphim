@@ -23,8 +23,19 @@ test("admin thêm link, trang phim hiện ngay, rồi xóa", async ({ page }) =>
   await signIn(page, admin, `/admin/phim?q=${runId}`);
   await page.getByRole("link", { name: new RegExp(`Phim thử ${runId}`) }).click();
   const add = page.getByRole("region", { name: "Thêm link" });
-  await add.getByLabel("Địa chỉ link (https)").fill(url);
+  // Link http qua được kiểm tra của trình duyệt nhưng server từ chối: dữ liệu đã nhập phải còn.
+  const address = add.getByLabel("Địa chỉ link (https)");
+  await address.fill("http://example.com/khong-https");
   await add.getByLabel("Nền tảng").selectOption("netflix");
+  await add.getByLabel("Ghi chú").fill("Vietsub");
+  await add.getByRole("button", { name: "Thêm link" }).click();
+  await expect(add.getByRole("alert")).toContainText("https");
+  await expect(add.getByRole("button", { name: "Thêm link" })).toBeEnabled();
+  await expect(address).toHaveValue("http://example.com/khong-https");
+  await expect(add.getByLabel("Nền tảng")).toHaveValue("netflix");
+  await expect(add.getByLabel("Ghi chú")).toHaveValue("Vietsub");
+
+  await address.fill(url);
   await add.getByRole("button", { name: "Thêm link" }).click();
   await expect(page.getByRole("heading", { name: "Link đang có (2)" })).toBeVisible();
   expect(await rows(`watch_options?select=platform&film_id=eq.${filmId}&url=eq.${encodeURIComponent(url)}`)).toEqual([

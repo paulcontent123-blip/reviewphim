@@ -15,7 +15,8 @@ export async function requireAdmin(path: string): Promise<void> {
   if (!hasSupabase) notFound();
   const user = await currentUser();
   if (!user) redirect(`/dang-nhap?next=${encodeURIComponent(path)}`);
-  const { data } = await sessionClient().from("profiles").select("role").eq("id", user.id).maybeSingle();
+  const db = await sessionClient();
+  const { data } = await db.from("profiles").select("role").eq("id", user.id).maybeSingle();
   if (data?.role !== "admin") notFound();
 }
 
@@ -33,7 +34,7 @@ export interface AdminFilm {
 }
 
 export async function adminFilms({ q, missing, page }: { q: string; missing: boolean; page: number }) {
-  let query = sessionClient().from("films").select("id,slug,title,year,watch_options(id)", { count: "exact" });
+  let query = (await sessionClient()).from("films").select("id,slug,title,year,watch_options(id)", { count: "exact" });
   if (q) query = query.ilike("search_text", `%${unaccent(q).replace(/[\\%_*]/g, " ").trim()}%`);
   // Phim không có dòng nào trong watch_options.
   if (missing) query = query.is("watch_options", null);
@@ -44,7 +45,7 @@ export async function adminFilms({ q, missing, page }: { q: string; missing: boo
 export type AdminFilmDetail = { id: string; slug: string; title: string; watch_options: WatchOption[] };
 
 export async function adminFilm(slug: string): Promise<AdminFilmDetail | null> {
-  const res = await sessionClient()
+  const res = await (await sessionClient())
     .from("films")
     .select("id,slug,title,watch_options(id,film_id,platform,url,type,quality,label)")
     .eq("slug", slug)
@@ -69,7 +70,7 @@ export interface AdminReview {
 /** Lấy dư một dòng để biết còn trang sau hay không. */
 export async function adminReviews(status: AdminReview["status"], page: number) {
   const rows = unwrap<AdminReview[]>(
-    await sessionClient().rpc("admin_reviews", {
+    await (await sessionClient()).rpc("admin_reviews", {
       only_status: status,
       page_size: REVIEW_PAGE_SIZE + 1,
       page_offset: page * REVIEW_PAGE_SIZE,

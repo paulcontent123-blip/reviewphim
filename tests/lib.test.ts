@@ -6,6 +6,7 @@ import { FILMS, REVIEWS } from "@/lib/data/sample";
 import { fullReview } from "@/lib/premium";
 import { excerpt, otherTitle, safeNext, slugify, smallPoster, starFill, unaccent, youtubeId } from "@/lib/text";
 import { filmSlug, toCast, toFilm, withoutLocked } from "@/lib/tmdb";
+import { config as sessionRefresh } from "@/proxy";
 
 describe("text", () => {
   it("tạo slug tiếng Việt", () => {
@@ -191,4 +192,10 @@ describe("ảnh nhỏ và sao", () => {
     [12, 100],
     [-1, 0],
   ])("điểm %s tô %s phần trăm", (score, percent) => expect(starFill(score)).toBeCloseTo(percent));
+});
+
+describe("làm mới phiên đăng nhập", () => {
+  it.each(["/phim/:path*", "/review/:path*", "/go/:path*", "/dang-nhap", "/admin/:path*"])("chạy trên %s", (path) => {
+    expect(sessionRefresh.matcher).toContain(path);
+  });
 });

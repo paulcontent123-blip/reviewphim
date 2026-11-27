@@ -4,8 +4,8 @@ import { cookies } from "next/headers";
 import { hasSupabase, supabaseAnonKey, supabaseUrl } from "@/lib/env";
 
 /** Client theo phiên đăng nhập của người dùng (chịu RLS). */
-export function sessionClient() {
-  const store = cookies();
+export async function sessionClient() {
+  const store = await cookies();
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     global: { fetch: (input, init) => fetch(input, { ...init, cache: "no-store" }) },
     cookies: {
@@ -14,7 +14,7 @@ export function sessionClient() {
         try {
           list.forEach(({ name, value, options }) => store.set(name, value, options));
         } catch {
-          // Server Component không ghi được cookie; middleware đã làm mới phiên.
+          // Server Component không ghi được cookie; proxy đã làm mới phiên.
         }
       },
     },
@@ -23,6 +23,7 @@ export function sessionClient() {
 
 export async function currentUser() {
   if (!hasSupabase) return null;
-  const { data } = await sessionClient().auth.getUser();
+  const db = await sessionClient();
+  const { data } = await db.auth.getUser();
   return data.user;
 }

@@ -8,10 +8,10 @@ export const revalidate = 3600;
 // Không đặt dynamicParams = false: sau revalidatePath của đồng bộ TMDB, trang sẽ 404 thay vì được dựng lại.
 export const generateStaticParams = () => GENRES.map((g) => ({ slug: g.slug }));
 
-type Props = { params: { slug: string } };
+type Props = { params: Promise<{ slug: string }> };
 
-export function generateMetadata({ params }: Props): Metadata {
-  const g = genreBySlug(params.slug);
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const g = genreBySlug((await params).slug);
   if (!g) return {};
   return {
     title: `Phim ${g.name.toLowerCase()} hay`,
@@ -21,7 +21,7 @@ export function generateMetadata({ params }: Props): Metadata {
 }
 
 export default async function GenrePage({ params }: Props) {
-  const g = genreBySlug(params.slug);
+  const g = genreBySlug((await params).slug);
   if (!g) notFound();
   return (
     <div className="wrap">

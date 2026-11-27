@@ -1,13 +1,12 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { startTransition, useActionState, type FormEvent } from "react";
 import { saveLink } from "@/app/admin/actions";
 import { LABEL_MAX, QUALITIES, URL_MAX } from "@/lib/admin";
 import { PLATFORMS, TYPES } from "@/lib/platforms";
 import type { Platform, WatchOption } from "@/lib/types";
 
-function Submit({ label }: { label: string }) {
-  const { pending } = useFormStatus();
+function Submit({ label, pending }: { label: string; pending: boolean }) {
   return (
     <button type="submit" className="btn-gold" disabled={pending}>
       {pending ? "Đang lưu..." : label}
@@ -16,9 +15,18 @@ function Submit({ label }: { label: string }) {
 }
 
 export function LinkForm({ filmId, filmSlug, option }: { filmId: string; filmSlug: string; option?: WatchOption }) {
-  const [state, action] = useFormState(saveLink, {});
+  const [state, action, pending] = useActionState(saveLink, {});
+
+  // React 19 tự xóa form sau khi chạy action, kể cả khi lỗi. Gửi qua onSubmit để giữ dữ liệu đã nhập;
+  // vẫn đặt action để form gửi được khi trang chưa tải xong script.
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    startTransition(() => action(data));
+  }
+
   return (
-    <form action={action} className="grid gap-3 sm:grid-cols-2">
+    <form action={action} onSubmit={submit} className="grid gap-3 sm:grid-cols-2">
       <input type="hidden" name="film_id" value={filmId} />
       <input type="hidden" name="film_slug" value={filmSlug} />
       {option && <input type="hidden" name="option_id" value={option.id} />}
@@ -66,7 +74,7 @@ export function LinkForm({ filmId, filmSlug, option }: { filmId: string; filmSlu
         <input name="label" maxLength={LABEL_MAX} defaultValue={option?.label ?? ""} placeholder="Ví dụ: Vietsub" className="field mt-1" />
       </label>
       <div className="flex flex-wrap items-center gap-3 sm:col-span-2">
-        <Submit label={option ? "Lưu thay đổi" : "Thêm link"} />
+        <Submit label={option ? "Lưu thay đổi" : "Thêm link"} pending={pending} />
         {state.error && (
           <p role="alert" className="text-sm text-crimson">
             {state.error}
