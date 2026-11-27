@@ -21,6 +21,7 @@ export function ReviewCard({ review, showFilm = true }: { review: Review; showFi
       <p className="mt-3 flex flex-wrap justify-between gap-2 text-xs text-fg3">
         <span>
           {review.author_name} · {formatDate(review.published_at)} · {review.likes} hữu ích
+          {review.locked && <strong className="text-goldtext"> · Premium</strong>}
         </span>
         <span className="font-bold text-fg">★ {review.score}/10</span>
       </p>

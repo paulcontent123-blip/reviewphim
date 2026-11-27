@@ -76,6 +76,7 @@ export const REVIEWS: Review[] = [0, 5, 7, 1].map((idx, i) => {
     author_name: "tac_gia_mau",
     author_avatar_url: null,
     author_role: "reviewer",
+    locked: false,
   };
 });
 

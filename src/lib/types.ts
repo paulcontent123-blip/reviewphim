@@ -65,6 +65,8 @@ export interface Review {
   author_name: string;
   author_avatar_url: string | null;
   author_role: "viewer" | "reviewer" | "partner" | "admin";
+  /** Khách chỉ được đọc đoạn trích; content lúc đó không phải toàn bài. */
+  locked: boolean;
 }
 
 export interface FilmQuery {

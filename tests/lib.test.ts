@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { canPostContent, CONTENT_OFF_MESSAGE, isPostingOff } from "@/lib/content";
 import { nameFormatError, nameSaveError, normalizeName } from "@/lib/display-name";
-import { movieJsonLd, serializeJsonLd } from "@/lib/jsonld";
-import { FILMS } from "@/lib/data/sample";
+import { movieJsonLd, reviewJsonLd, serializeJsonLd } from "@/lib/jsonld";
+import { FILMS, REVIEWS } from "@/lib/data/sample";
+import { fullReview } from "@/lib/premium";
 import { excerpt, safeNext, slugify, unaccent, youtubeId } from "@/lib/text";
 import { filmSlug, toCast, toFilm, withoutLocked } from "@/lib/tmdb";
 
@@ -72,6 +73,15 @@ describe("JSON-LD", () => {
     expect(movieJsonLd(none, []).aggregateRating).toBeUndefined();
     expect(movieJsonLd(some, []).aggregateRating).toMatchObject({ ratingCount: some.vote_count });
   });
+  it("bài bị khóa: không có thân bài, đánh dấu không đọc miễn phí", () => {
+    const open = { ...REVIEWS[0], spoiler: false, locked: false };
+    expect(reviewJsonLd(open).reviewBody).toBeTruthy();
+    expect(reviewJsonLd(open)).not.toHaveProperty("isAccessibleForFree", false);
+    const locked = reviewJsonLd({ ...open, locked: true });
+    expect(locked.reviewBody).toBeUndefined();
+    expect(locked.isAccessibleForFree).toBe(false);
+    expect(movieJsonLd(FILMS[0], [{ ...open, locked: true }]).review?.[0].reviewBody).toBeUndefined();
+  });
   it("không cho nội dung đóng thẻ script", () => {
     expect(serializeJsonLd({ a: "</script><script>alert(1)</script>" })).not.toContain("<");
   });
@@ -119,5 +129,37 @@ describe("tên hiển thị", () => {
   ])("đổi lỗi database thành câu dễ hiểu: %o", (error, text) => expect(nameSaveError(error)).toMatch(text));
   it("công tắc tắt dùng đúng câu thông báo chung", () => {
     expect(nameSaveError({ code: "23514", message: "display_name_off" })).toBe(CONTENT_OFF_MESSAGE);
+  });
+});
+
+describe("bài Premium", () => {
+  type Result = { data: unknown; error: unknown };
+  const db = (answers: Record<string, Result>) => {
+    const asked: string[] = [];
+    return {
+      asked,
+      rpc: async (fn: "can_read_review" | "review_body", args: { target: string }) => {
+        asked.push(`${fn} ${args.target}`);
+        return answers[fn];
+      },
+    };
+  };
+  const ok = (data: unknown): Result => ({ data, error: null });
+
+  it("có quyền thì lấy nội dung đầy đủ", async () => {
+    const client = db({ can_read_review: ok(true), review_body: ok("Toàn bộ bài") });
+    expect(await fullReview(client, "bai-1")).toBe("Toàn bộ bài");
+    expect(client.asked).toEqual(["can_read_review bai-1", "review_body bai-1"]);
+  });
+  it("không có quyền thì không lấy đoạn trích thay cho bài", async () => {
+    const client = db({ can_read_review: ok(false), review_body: ok("đoạn trích") });
+    expect(await fullReview(client, "bai-1")).toBeNull();
+    expect(client.asked).toHaveLength(1);
+  });
+  it("lỗi hoặc không có dữ liệu thì coi như chưa đọc được", async () => {
+    const failed = { data: null, error: { message: "mất mạng" } };
+    expect(await fullReview(db({ can_read_review: failed, review_body: ok("x") }), "a")).toBeNull();
+    expect(await fullReview(db({ can_read_review: ok(true), review_body: failed }), "a")).toBeNull();
+    expect(await fullReview(db({ can_read_review: ok(true), review_body: ok(null) }), "a")).toBeNull();
   });
 });

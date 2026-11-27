@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/JsonLd";
 import { LikeButton } from "@/components/LikeButton";
 import { Markdown } from "@/components/Markdown";
+import { ReviewBody } from "@/components/ReviewBody";
 import { Spoiler } from "@/components/Spoiler";
 import { WatchOptions } from "@/components/WatchOptions";
 import { getFilm, getReview } from "@/lib/data";
@@ -50,7 +51,13 @@ export default async function ReviewPage({ params }: Props) {
           {review.author_name} · <time dateTime={review.published_at}>{formatDate(review.published_at)}</time> ·{" "}
           <strong className="text-fg">★ {review.score}/10</strong>
         </p>
-        {review.spoiler ? <Spoiler>{body}</Spoiler> : body}
+        {review.locked ? (
+          <ReviewBody reviewId={review.id} teaser={review.content} spoiler={review.spoiler} />
+        ) : review.spoiler ? (
+          <Spoiler>{body}</Spoiler>
+        ) : (
+          body
+        )}
         {review.tags && review.tags.length > 0 && <p className="mt-6 text-sm text-fg3">{review.tags.map((t) => `#${t}`).join(" ")}</p>}
         <div className="mt-6">
           <LikeButton reviewId={review.id} slug={review.slug} likes={review.likes} />

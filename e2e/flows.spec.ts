@@ -37,6 +37,10 @@ test("viết review", async ({ page }) => {
   expect(await rows(`reviews?select=title,score,status&author_id=eq.${userId}`)).toEqual([
     { title, score: 8, status: "published" },
   ]);
+  // Mở lại để sửa: bài cũ phải được điền sẵn.
+  await page.goto(`/phim/${filmSlug}/viet-review`);
+  await expect(page.getByLabel("Tiêu đề")).toHaveValue(title);
+  await expect(page.getByLabel(/^Nội dung/)).toHaveValue(content);
 });
 
 test("click affiliate được ghi", async ({ page, context }) => {

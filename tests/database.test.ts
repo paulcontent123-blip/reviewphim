@@ -36,7 +36,7 @@ const name = (uid: string, value: string) => db.query("update profiles set displ
 beforeAll(async () => {
   db = new PGlite();
   await db.exec(SUPABASE_STUB);
-  for (const f of ["0001_techspec", "0002_phase1", "0003_review_moderation", "0004_content_switch", "0005_display_name"]) {
+  for (const f of ["0001_techspec", "0002_phase1", "0003_review_moderation", "0004_content_switch", "0005_display_name", "0006_premium"]) {
     await db.exec(readFileSync(`supabase/migrations/${f}.sql`, "utf8"));
   }
   await db.query("insert into auth.users values ($1), ($2)", [A, B]);
@@ -438,6 +438,127 @@ describe("tên hiển thị", () => {
     );
     // Quản trị vẫn ẩn được bài của người chưa có tên.
     expect(await as("service_role", null, "update reviews set status = 'hidden' where author_id = $1 returning id", [D])).toHaveLength(1);
+  });
+});
+
+describe("gói Premium", () => {
+  const FIRST = "21000000-0000-4000-8000-000000000000"; // tác giả bài đăng sớm nhất
+  const SECOND = "22000000-0000-4000-8000-000000000000";
+  const THIRD = "23000000-0000-4000-8000-000000000000"; // bài có tiết lộ nội dung
+  const MEMBER = "24000000-0000-4000-8000-000000000000";
+  const PAID = "25000000-0000-4000-8000-000000000000";
+  const ADMIN = "26000000-0000-4000-8000-000000000000";
+  const everyone = [FIRST, SECOND, THIRD, MEMBER, PAID, ADMIN];
+  const BODY = LONG.repeat(5); // dài hơn đoạn trích 200 ký tự
+  const TEASER = BODY.slice(0, 200);
+  let premiumFilm: string;
+  const ids: Record<string, string> = {};
+
+  type Row = { content: string; locked: boolean };
+  const feed = (role: string, uid: string | null) =>
+    as<Row>(role, uid, "select content, locked from review_feed where film_id = $1 order by published_at", [premiumFilm]);
+  const bodies = async (role: string, uid: string | null) => (await feed(role, uid)).map((r) => (r.locked ? "khóa" : "đọc"));
+  const settings = (enabled: boolean, guest = 1, member = 1) =>
+    db.query("update site_settings set premium_enabled = $1, guest_free_reviews = $2, member_free_reviews = $3", [enabled, guest, member]);
+  const bodyOf = async (role: string, uid: string | null, id: string) =>
+    (await as<{ body: string | null }>(role, uid, "select review_body($1) as body", [id]))[0].body;
+
+  beforeAll(async () => {
+    const f = await db.query<{ id: string }>("insert into films (slug, title) values ('phim-premium', 'Phim Premium') returning id");
+    premiumFilm = f.rows[0].id;
+    for (const [i, uid] of everyone.entries()) {
+      await db.query("insert into auth.users values ($1)", [uid]);
+      await name(uid, `Người Gói ${i}`);
+    }
+    await db.query("update profiles set role = 'admin' where id = $1", [ADMIN]);
+    await db.query("update profiles set premium_until = now() + interval '1 day' where id = $1", [PAID]);
+    for (const [i, uid] of [FIRST, SECOND, THIRD].entries()) {
+      const [row] = await user(
+        uid,
+        "insert into reviews (film_id, author_id, score, title, content, spoiler) values ($1, $2, 7, 'Bài có phí', $3, $4) returning id",
+        [premiumFilm, uid, BODY, uid === THIRD],
+      );
+      ids[uid] = row.id as string;
+      await db.query("update reviews set published_at = '2026-01-01'::timestamptz + make_interval(days => $1) where id = $2", [i, row.id]);
+    }
+  });
+  afterAll(async () => {
+    await settings(false);
+    await db.query("delete from auth.users where id = any($1)", [everyone]);
+    await db.query("delete from films where id = $1", [premiumFilm]);
+  });
+
+  it("mặc định tắt, mỗi bên một bài; tắt thì ai cũng đọc đầy đủ", async () => {
+    const r = await db.query("select premium_enabled, guest_free_reviews, member_free_reviews from site_settings");
+    expect(r.rows).toEqual([{ premium_enabled: false, guest_free_reviews: 1, member_free_reviews: 1 }]);
+    expect(await feed("anon", null)).toEqual(Array(3).fill({ content: BODY, locked: false }));
+  });
+
+  it("bật: khách đọc bài sớm nhất, bài khác chỉ có đoạn trích, bài spoiler không trích", async () => {
+    await settings(true);
+    expect(await feed("anon", null)).toEqual([
+      { content: BODY, locked: false },
+      { content: TEASER, locked: true },
+      { content: "", locked: true },
+    ]);
+  });
+
+  it("gọi thẳng bảng không lấy hay dò được nội dung", async () => {
+    await settings(true);
+    for (const run of [anon, (sql: string, p?: unknown[]) => user(MEMBER, sql, p)]) {
+      await expect(run("select content from reviews")).rejects.toThrow(/permission denied/);
+      await expect(run("select * from reviews")).rejects.toThrow(/permission denied/);
+      await expect(run("select id from reviews where content like 'N%'")).rejects.toThrow(/permission denied/);
+      await expect(run("select id from reviews order by content")).rejects.toThrow(/permission denied/);
+    }
+    await expect(user(FIRST, "update reviews set score = 7 where author_id = $1 returning content", [FIRST])).rejects.toThrow(/permission denied/);
+    expect(await bodyOf("anon", null, ids[SECOND])).toBe(TEASER);
+  });
+
+  it("mức của khách và người miễn phí đổi được riêng", async () => {
+    await settings(true, 0, 2);
+    expect(await bodies("anon", null)).toEqual(["khóa", "khóa", "khóa"]);
+    expect(await bodies("authenticated", MEMBER)).toEqual(["đọc", "đọc", "khóa"]);
+    expect(await bodyOf("authenticated", MEMBER, ids[SECOND])).toBe(BODY);
+  });
+
+  it("Premium còn hạn và admin đọc hết; hết hạn thì khóa lại", async () => {
+    await settings(true);
+    expect(await bodies("authenticated", PAID)).toEqual(["đọc", "đọc", "đọc"]);
+    expect(await bodies("authenticated", ADMIN)).toEqual(["đọc", "đọc", "đọc"]);
+    await db.query("update profiles set premium_until = now() - interval '1 minute' where id = $1", [PAID]);
+    expect(await bodies("authenticated", PAID)).toEqual(["đọc", "khóa", "khóa"]);
+    await db.query("update profiles set premium_until = now() + interval '1 day' where id = $1", [PAID]);
+  });
+
+  it("tác giả đọc được bài của mình và lấy lại để sửa", async () => {
+    await settings(true);
+    expect(await bodies("authenticated", THIRD)).toEqual(["đọc", "khóa", "đọc"]);
+    expect(await user(THIRD, "select title, content, spoiler, status from my_review($1)", [premiumFilm])).toEqual([
+      { title: "Bài có phí", content: BODY, spoiler: true, status: "published" },
+    ]);
+    expect(await user(MEMBER, "select content from my_review($1)", [premiumFilm])).toEqual([]);
+    await expect(anon("select content from my_review($1)", [premiumFilm])).rejects.toThrow(/permission denied/);
+  });
+
+  it("người dùng không tự cấp Premium, không đọc hạn, không đổi cấu hình", async () => {
+    await expect(user(MEMBER, "update profiles set premium_until = now() + interval '1 year' where id = $1", [MEMBER])).rejects.toThrow(
+      /permission denied/,
+    );
+    await expect(user(MEMBER, "select premium_until from profiles")).rejects.toThrow(/permission denied/);
+    await expect(user(MEMBER, "update site_settings set premium_enabled = false")).rejects.toThrow(/permission denied/);
+  });
+
+  it("bài đang ẩn không lộ nội dung cho người khác", async () => {
+    await settings(false);
+    await db.query("update reviews set status = 'hidden' where id = $1", [ids[SECOND]]);
+    expect(await bodyOf("anon", null, ids[SECOND])).toBeNull();
+    expect(await bodyOf("authenticated", MEMBER, ids[SECOND])).toBeNull();
+    expect(await bodyOf("authenticated", SECOND, ids[SECOND])).toBe(BODY);
+    // Bài ẩn không tính vào số bài đọc miễn phí.
+    await settings(true, 2);
+    expect(await bodies("anon", null)).toEqual(["đọc", "đọc"]);
+    await db.query("update reviews set status = 'published' where id = $1", [ids[SECOND]]);
   });
 });
 

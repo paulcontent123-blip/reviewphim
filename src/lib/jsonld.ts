@@ -33,7 +33,8 @@ function reviewNode(r: Review) {
     url: `${siteUrl}/review/${r.slug}`,
     author: person(r.author_name),
     datePublished: r.published_at,
-    reviewBody: r.spoiler ? undefined : excerpt(r.content, 500),
+    reviewBody: r.spoiler || r.locked ? undefined : excerpt(r.content, 500),
+    isAccessibleForFree: r.locked ? false : undefined,
     reviewRating: { "@type": "Rating", ratingValue: r.score, bestRating: 10, worstRating: 1 },
   };
 }

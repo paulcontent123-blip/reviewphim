@@ -27,14 +27,11 @@ export default async function WriteReviewPage({ params }: { params: { slug: stri
     }
     const user = await currentUser();
     if (!user) redirect(`/dang-nhap?next=${encodeURIComponent(`/phim/${film.slug}/viet-review`)}`);
-    const { data } = await sessionClient()
-      .from("reviews")
-      .select("score,title,content,spoiler,tags,status")
-      .eq("film_id", film.id)
-      .eq("author_id", user.id)
-      .maybeSingle();
-    draft = data;
-    hidden = data?.status === "hidden";
+    // Cột content không đọc thẳng được (gói Premium); hàm này chỉ trả bài của người đang đăng nhập.
+    const { data } = await sessionClient().rpc("my_review", { film: film.id }).maybeSingle();
+    const mine = data as (ReviewDraft & { status: string }) | null;
+    draft = mine;
+    hidden = mine?.status === "hidden";
     const { data: profile } = await sessionClient().from("profiles").select("display_name").eq("id", user.id).maybeSingle();
     askName = profile?.display_name === null;
   }
